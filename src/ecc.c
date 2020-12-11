@@ -30,6 +30,23 @@ void errorf(char *format, ...) {
     exit(1);
 }
 
+char *user_input;
+
+// Extend errorf (ex point location)
+void errorf_at(char *loc, char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+
+    int pos = loc - user_input;
+    fprintf(stderr, "\e[31mSyntax Error\n");
+    fprintf(stderr, "\e[m%s\n", user_input);
+    fprintf(stderr, "%*s", pos, " ");
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, format, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 bool move_symbol(char op) {
     if (now_token->kind != TK_SYMBOL || now_token->str[0] != op) {
         return false;
@@ -40,14 +57,14 @@ bool move_symbol(char op) {
 
 void move_expect_symbol(char op) {
     if (now_token->kind != TK_SYMBOL || now_token->str[0] != op) {
-        errorf("[ NG ] Invalid character '%c'", op);
+        errorf_at(now_token->str, "Invalid character '%c'", op);
     }
     now_token = now_token->next;
 }
 
 int move_expect_number() {
     if (now_token->kind != TK_INT) {
-        errorf("[ NG ] Not a number");
+        errorf_at(now_token->str, "Not a number");
     }
     int val = now_token->val;
     now_token = now_token->next;
@@ -100,6 +117,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "invalid number of arguments");
     }
 
+    user_input = argv[1];
     now_token = tokenize(argv[1]);
 
     // Print the initial part of the assembly
