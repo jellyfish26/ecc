@@ -1,3 +1,3 @@
-./src/ecc
-./src/*.o
-./src/tmp*
+/src/ecc
+/src/*.o
+/src/tmp*

@@ -16,7 +16,7 @@ typedef struct Token Token;
 struct Token {
     TokenKind kind; // Type of TokenKind
     Token *next; // Next Token
-    int val; // Numerical value if TokenKind is TK_INT
+    int val; // Integer value if TokenKind is TK_INT
     char *str; // Token String (etc operator)
 };
 
@@ -88,14 +88,24 @@ Token *tokenize(char *str_p) {
     head.next = NULL;
     Token *current = &head;
 
+    char permit_symbol[] = {'+', '-', '*', '/', '(', ')'};
+
     while (*str_p) {
         if (isspace(*str_p)) {
             str_p++;
             continue;
         }
 
-        if (*str_p == '+' || *str_p == '-') {
-            current = new_token(TK_SYMBOL, current, str_p++);
+        bool check = false;
+        for (int i = 0; i < sizeof(permit_symbol) / sizeof(char); i++) {
+            if (*str_p == permit_symbol[i]) {
+                current = new_token(TK_SYMBOL, current, str_p++);
+                check = true;
+                break;
+            }
+        }
+
+        if (check) {
             continue;
         }
 
@@ -112,6 +122,114 @@ Token *tokenize(char *str_p) {
     return head.next;
 }
 
+typedef enum {
+    ND_ADD, // +
+    ND_SUB, // -
+    ND_MUL, // *
+    ND_DIV, // /
+    ND_INT, // Integer
+} NodeKind;
+
+typedef struct Node Node;
+
+// Type Node
+struct Node {
+    NodeKind kind; // Type of NodeKind
+    Node *lhs; // left
+    Node *rhs; // right
+    int val; // Integer value if NodeKind is ND_INT
+};
+
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
+    Node *ret = calloc(1, sizeof(Node));
+    ret->kind = kind;
+    ret->lhs = lhs;
+    ret->rhs = rhs;
+    return ret;
+}
+
+Node *new_node_int(int val) {
+    Node *ret = calloc(1, sizeof(Node));
+    ret->kind = ND_INT;
+    ret->val = val;
+    return ret;
+}
+
+
+// Prototype
+Node *expr();
+Node *mul();
+Node *primary();
+
+Node *expr() {
+    Node *ret = mul();
+
+    while (1) {
+        if (move_symbol('+')) {
+            ret = new_node(ND_ADD, ret, mul());
+        } else if (move_symbol('-')) {
+            ret = new_node(ND_SUB, ret, mul());
+        } else {
+            return ret;
+        }
+    }
+}
+
+Node *mul() {
+    Node *ret = primary();
+
+    while (1) {
+        if (move_symbol('*')) {
+            ret = new_node(ND_MUL, ret, primary());
+        } else if (move_symbol('/')) {
+            ret = new_node(ND_DIV, ret, primary());
+        } else {
+            return ret;
+        }
+    }
+}
+
+Node *primary() {
+    if (move_symbol('(')) {
+        Node *ret = expr();
+        move_expect_symbol(')');
+        return ret;
+    }
+
+    return new_node_int(move_expect_number());
+}
+
+void compile_node(Node *now_node) {
+    if (now_node->kind == ND_INT) {
+        printf("  push %d\n", now_node->val);
+        return;
+    }
+
+    compile_node(now_node->lhs);
+    compile_node(now_node->rhs);
+
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+
+    switch (now_node->kind) {
+    case ND_ADD:
+        printf("  add rax, rdi\n");
+        break;
+    case ND_SUB:
+        printf("  sub rax, rdi\n");
+        break;
+    case ND_MUL:
+        printf("  imul rax, rdi\n");
+        break;
+    case ND_DIV:
+        printf("  cqo\n");
+        printf("  idiv rdi\n");
+        break;
+    }
+    
+    printf("  push rax\n");
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "invalid number of arguments");
@@ -125,19 +243,11 @@ int main(int argc, char **argv) {
     printf(".global main\n");
     printf("main:\n");
 
-    // Load first value
-    printf("  mov rax, %ld\n", move_expect_number());
+    Node *node = expr();
+    compile_node(node);
 
-    while (!is_eof()) {
-        if (move_symbol('+')) {
-            printf("  add rax, %d\n", move_expect_number());
-            continue;
-        }
-
-        move_expect_symbol('-');
-        printf("  sub rax, %d\n", move_expect_number());
-    }
-
+    printf("  pop rax\n");
     printf("  ret\n");
+
     return 0;
 }
