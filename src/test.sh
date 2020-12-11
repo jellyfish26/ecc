@@ -16,8 +16,7 @@ assert() {
   fi
 }
 
-assert 0 0
-assert 127 127
-assert 255 255
+assert $((2+5)) "2+5"
+assert $((3+7-10+4)) "3+7-10+4"
 
 echo OK
