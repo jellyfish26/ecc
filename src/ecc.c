@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <string.h>
 
 typedef enum {
     TK_SYMBOL, // Symbol
@@ -18,6 +19,7 @@ struct Token {
     Token *next; // Next Token
     int val; // Integer value if TokenKind is TK_INT
     char *str; // Token String (etc operator)
+    int len; // Length of token string
 };
 
 Token *now_token;
@@ -47,17 +49,23 @@ void errorf_at(char *loc, char *format, ...) {
     exit(1);
 }
 
-bool move_symbol(char op) {
-    if (now_token->kind != TK_SYMBOL || now_token->str[0] != op) {
+bool move_symbol(char *op) {
+    if (now_token->kind != TK_SYMBOL ||
+        now_token->len != strlen(op) ||
+        memcmp(now_token->str, op, now_token->len))
+    {
         return false;
     }
     now_token = now_token->next;
     return true;
 }
 
-void move_expect_symbol(char op) {
-    if (now_token->kind != TK_SYMBOL || now_token->str[0] != op) {
-        errorf_at(now_token->str, "Invalid character '%c'", op);
+void move_expect_symbol(char *op) {
+    if (now_token->kind != TK_SYMBOL ||
+        now_token->len != strlen(op) ||
+        memcmp(now_token->str, op, now_token->len))
+    {
+        errorf_at(now_token->str, "Invalid character '%s'", op);
     }
     now_token = now_token->next;
 }
@@ -75,10 +83,11 @@ bool is_eof() {
     return (now_token->kind == TK_EOF);
 }
 
-Token *new_token(TokenKind kind, Token *current, char *str) {
+Token *new_token(TokenKind kind, Token *current, char *str, int len) {
     Token *ret = calloc(1, sizeof(Token));
     ret->kind = kind;
     ret->str = str;
+    ret->len = len;
     current->next = ret;
     return ret;
 }
@@ -88,7 +97,10 @@ Token *tokenize(char *str_p) {
     head.next = NULL;
     Token *current = &head;
 
-    char permit_symbol[] = {'+', '-', '*', '/', '(', ')'};
+    char *permit_symbol[] = {
+        "==", "!=", ">=", "<=",
+        "+", "-", "*", "/", "(", ")", "<", ">", "=", "!"
+    };
 
     while (*str_p) {
         if (isspace(*str_p)) {
@@ -97,9 +109,11 @@ Token *tokenize(char *str_p) {
         }
 
         bool check = false;
-        for (int i = 0; i < sizeof(permit_symbol) / sizeof(char); i++) {
-            if (*str_p == permit_symbol[i]) {
-                current = new_token(TK_SYMBOL, current, str_p++);
+        for (int i = 0; i < 14; i++) {
+            int len = strlen(permit_symbol[i]);
+            if (memcmp(str_p, permit_symbol[i], len) == 0) {
+                current = new_token(TK_SYMBOL, current, str_p, len);
+                str_p += len;
                 check = true;
                 break;
             }
@@ -110,15 +124,17 @@ Token *tokenize(char *str_p) {
         }
 
         if (isdigit(*str_p)) {
-            current = new_token(TK_INT, current, str_p);
+            current = new_token(TK_INT, current, str_p, 0);
+            char *before = str_p;
             current->val = strtol(str_p, &str_p, 10);
+            current->len = str_p - before;
             continue;
         }
 
         errorf("Cannot tokenize");
     }
 
-    new_token(TK_EOF, current, str_p);
+    new_token(TK_EOF, current, str_p, 0);
     return head.next;
 }
 
@@ -127,6 +143,10 @@ typedef enum {
     ND_SUB, // -
     ND_MUL, // *
     ND_DIV, // /
+    ND_EQ, // ==
+    ND_NEQ, // !=
+    ND_LT, // <
+    ND_LE, // <=
     ND_INT, // Integer
 } NodeKind;
 
@@ -158,17 +178,56 @@ Node *new_node_int(int val) {
 
 // Prototype
 Node *expr();
+Node *equality();
+Node *relational();
+Node *add();
 Node *mul();
-Node *primary();
 Node *unary();
+Node *primary();
 
 Node *expr() {
+    return equality();
+}
+
+Node *equality() {
+    Node *ret = relational();
+
+    while (1) {
+        if (move_symbol("==")) {
+            ret = new_node(ND_EQ, ret, relational());
+        } else if (move_symbol("!=")) {
+            ret = new_node(ND_NEQ, ret, relational());
+        } else {
+            return ret;
+        }
+    }
+}
+
+Node *relational() {
+    Node *ret = add();
+
+    while (1) {
+        if (move_symbol("<=")) {
+            ret = new_node(ND_LE, ret, add());
+        } else if (move_symbol(">=")) {
+            ret = new_node(ND_LE, add(), ret);
+        } else if (move_symbol("<")) {
+            ret = new_node(ND_LT, ret, add());
+        } else if (move_symbol(">")) {
+            ret = new_node(ND_LT, add(), ret);
+        } else {
+            return ret;
+        }
+    }
+}
+
+Node *add() {
     Node *ret = mul();
 
     while (1) {
-        if (move_symbol('+')) {
+        if (move_symbol("+")) {
             ret = new_node(ND_ADD, ret, mul());
-        } else if (move_symbol('-')) {
+        } else if (move_symbol("-")) {
             ret = new_node(ND_SUB, ret, mul());
         } else {
             return ret;
@@ -180,9 +239,9 @@ Node *mul() {
     Node *ret = unary();
 
     while (1) {
-        if (move_symbol('*')) {
+        if (move_symbol("*")) {
             ret = new_node(ND_MUL, ret, unary());
-        } else if (move_symbol('/')) {
+        } else if (move_symbol("/")) {
             ret = new_node(ND_DIV, ret, unary());
         } else {
             return ret;
@@ -191,9 +250,9 @@ Node *mul() {
 }
 
 Node *unary() {
-    if (move_symbol('+')) {
+    if (move_symbol("+")) {
         return unary();
-    } else if (move_symbol('-')) {
+    } else if (move_symbol("-")) {
         return new_node(ND_SUB, new_node_int(0), unary());
     }
 
@@ -201,9 +260,9 @@ Node *unary() {
 }
 
 Node *primary() {
-    if (move_symbol('(')) {
+    if (move_symbol("(")) {
         Node *ret = expr();
-        move_expect_symbol(')');
+        move_expect_symbol(")");
         return ret;
     }
 
@@ -235,6 +294,26 @@ void compile_node(Node *now_node) {
     case ND_DIV:
         printf("  cqo\n");
         printf("  idiv rdi\n");
+        break;
+    case ND_EQ:
+        printf("  cmp rax, rdi\n");
+        printf("  sete al\n");
+        printf("  movzb rax, al\n");
+        break;
+    case ND_NEQ:
+        printf("  cmp rax, rdi\n");
+        printf("  setne al\n");
+        printf("  movzb rax, al\n");
+        break;
+    case ND_LT:
+        printf("  cmp rax, rdi\n");
+        printf("  setl al\n");
+        printf("  movzb rax, al\n");
+        break;
+    case ND_LE:
+        printf("  cmp rax, rdi\n");
+        printf("  setle al\n");
+        printf("  movzb rax, al\n");
         break;
     }
     
