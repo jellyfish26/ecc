@@ -28,6 +28,16 @@ Node *unary();
 Node *primary();
 
 Node *code[100];
+LVar *local_variables;
+
+LVar *find_lvar(Token *find) {
+    for (LVar *now_var = local_variables; now_var; now_var = now_var->next) {
+        if (now_var->len == find->len && !memcmp(find->str, now_var->name, now_var->len)) {
+            return now_var;
+        }
+    }
+    return NULL;
+}
 
 void program() {
     int i = 0;
@@ -137,7 +147,23 @@ Node *primary() {
 
     if (token) {
         Node *ret = new_node(ND_LVAR, NULL, NULL);
-        ret->offset = (token->str[0] - 'a' + 1) * 8;
+
+        LVar *result = find_lvar(token);
+        if (result) {
+            ret->offset = result->offset;
+        } else {
+            result = calloc(1, sizeof(LVar));
+            result->next = local_variables;
+            result->name = token->str;
+            result->len = token->len;
+            if (!local_variables) {
+                result->offset = 8;
+            } else {
+                result->offset = local_variables->offset + 8;
+            }
+            ret->offset = result->offset;
+            local_variables = result;
+        }
         return ret;
     }
 

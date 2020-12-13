@@ -9,9 +9,9 @@
 
 typedef enum {
     TK_SYMBOL, // Symbol
-    TK_IDENT, // Identify
-    TK_INT, // Integer value
-    TK_EOF, // End Of File
+    TK_IDENT,  // Identify
+    TK_INT,    // Integer value
+    TK_EOF,    // End Of File
 } TokenKind;
 
 typedef struct Token Token;
@@ -19,10 +19,10 @@ typedef struct Token Token;
 // Type Token
 struct Token {
     TokenKind kind; // Type of TokenKind
-    Token *next; // Next Token
-    int val; // Integer value if TokenKind is TK_INT
-    char *str; // Token String (etc operator)
-    int len; // Length of token string
+    Token *next;    // Next Token
+    int val;        // Integer value if TokenKind is TK_INT
+    char *str;      // Token String (etc operator)
+    int len;        // Length of token string
 };
 
 extern Token *now_token;
@@ -45,17 +45,17 @@ Token *tokenize(char *str_p);
 // parse.c
 
 typedef enum {
-    ND_ADD, // +
-    ND_SUB, // -
-    ND_MUL, // *
-    ND_DIV, // /
-    ND_EQ, // ==
-    ND_NEQ, // !=
-    ND_LT, // <
-    ND_LE, // <=
+    ND_ADD,    // +
+    ND_SUB,    // -
+    ND_MUL,    // *
+    ND_DIV,    // /
+    ND_EQ,     // ==
+    ND_NEQ,    // !=
+    ND_LT,     // <
+    ND_LE,     // <=
     ND_ASSIGN, // =
-    ND_LVAR, // Local Variable
-    ND_INT, // Integer
+    ND_LVAR,   // Local Variable
+    ND_INT,    // Integer
 } NodeKind;
 
 typedef struct Node Node;
@@ -63,10 +63,19 @@ typedef struct Node Node;
 // Type Node
 struct Node {
     NodeKind kind; // Type of NodeKind
-    Node *lhs; // left
-    Node *rhs; // right
-    int val; // Integer value if NodeKind is ND_INT
-    int offset; // offset value if NodeKind is ND_LVAL
+    Node *lhs;     // Left node
+    Node *rhs;     // Right node
+    int val;       // Integer value if NodeKind is ND_INT
+    int offset;    // Offset value if NodeKind is ND_LVAL
+};
+
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next; // Next variable (NULL if no variable)
+    char *name; // Variable name
+    int len;    // Length of name
+    int offset; // Offset from RBP (Base pointer)
 };
 
 void program();

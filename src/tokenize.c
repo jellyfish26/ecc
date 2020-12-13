@@ -78,6 +78,18 @@ Token *new_token(TokenKind kind, Token *current, char *str, int len) {
     return ret;
 }
 
+bool is_useable_char(char c) {
+    bool ret = false;
+    ret |= ('a' <= c && c <= 'z');
+    ret |= ('A' <= c && c <= 'Z');
+    ret |= (c == '_');
+    return ret;
+}
+
+bool is_identify_char(char c) {
+    return ('0' <= c && c <= '9') || is_useable_char(c);
+}
+
 Token *tokenize(char *str_p) {
     Token head;
     head.next = NULL;
@@ -110,17 +122,21 @@ Token *tokenize(char *str_p) {
             continue;
         }
 
-        if ('a' <= *str_p && *str_p <= 'z') {
-            current = new_token(TK_IDENT, current, str_p++, 1);
-            current->len = 1;
-            continue;
-        }
-
         if (isdigit(*str_p)) {
             current = new_token(TK_INT, current, str_p, 0);
             char *before = str_p;
             current->val = strtol(str_p, &str_p, 10);
             current->len = str_p - before;
+            continue;
+        }
+
+        if (is_identify_char(*str_p)) {
+            char *start = str_p;
+            while (is_identify_char(*str_p)) {
+                str_p++;
+            }
+            int len = str_p - start;
+            current = new_token(TK_IDENT, current, start, len);
             continue;
         }
 

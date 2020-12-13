@@ -43,5 +43,6 @@ assert $(((0 == 0) + (0 < 1))) "(0 == 0) + (0 < 1);"
 assert 1 "a = 1;"
 assert 3 "a = 1; b = 2; a + b;"
 assert 20 "a = 1 + 4; b = 4; z = a - b; a * b / z;"
+assert 12 "foo = 3; bar = 4; foo * bar;"
 
 echo OK
