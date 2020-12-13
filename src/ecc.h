@@ -9,6 +9,7 @@
 
 typedef enum {
     TK_SYMBOL, // Symbol
+    TK_IDENT, // Identify
     TK_INT, // Integer value
     TK_EOF, // End Of File
 } TokenKind;
@@ -35,6 +36,9 @@ void errorf_at(char *loc, char *format, ...);
 bool move_symbol(char *op);
 void move_expect_symbol(char *op);
 int move_expect_number();
+Token *move_ident();
+
+bool is_eof();
 
 Token *tokenize(char *str_p);
 
@@ -49,6 +53,8 @@ typedef enum {
     ND_NEQ, // !=
     ND_LT, // <
     ND_LE, // <=
+    ND_ASSIGN, // =
+    ND_LVAR, // Local Variable
     ND_INT, // Integer
 } NodeKind;
 
@@ -60,10 +66,12 @@ struct Node {
     Node *lhs; // left
     Node *rhs; // right
     int val; // Integer value if NodeKind is ND_INT
+    int offset; // offset value if NodeKind is ND_LVAL
 };
 
-Node *expr();
+void program();
+extern Node *code[100];
 
 // codegen.c
 
-void codegen(Node *now_node);
+void codegen();

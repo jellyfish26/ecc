@@ -16,7 +16,10 @@ Node *new_node_int(int val) {
 }
 
 // Prototype
+void program();
+Node *statement();
 Node *expr();
+Node *assign();
 Node *equality();
 Node *relational();
 Node *add();
@@ -24,8 +27,33 @@ Node *mul();
 Node *unary();
 Node *primary();
 
+Node *code[100];
+
+void program() {
+    int i = 0;
+    while (!is_eof()) {
+        code[i++] = statement();
+    }
+    code[i] = NULL;
+}
+
+Node *statement() {
+    Node *ret = expr();
+    move_expect_symbol(";");
+    return ret;
+}
+
 Node *expr() {
-    return equality();
+    return assign();
+}
+
+Node *assign() {
+    Node *ret = equality();
+
+    if (move_symbol("=")) {
+        ret = new_node(ND_ASSIGN, ret, assign());
+    }
+    return ret;
 }
 
 Node *equality() {
@@ -102,6 +130,14 @@ Node *primary() {
     if (move_symbol("(")) {
         Node *ret = expr();
         move_expect_symbol(")");
+        return ret;
+    }
+
+    Token *token = move_ident();
+
+    if (token) {
+        Node *ret = new_node(ND_LVAR, NULL, NULL);
+        ret->offset = (token->str[0] - 'a' + 1) * 8;
         return ret;
     }
 

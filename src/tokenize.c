@@ -56,6 +56,15 @@ int move_expect_number() {
     return val;
 }
 
+Token *move_ident() {
+    if (now_token->kind != TK_IDENT) {
+        return NULL;
+    }
+    Token *ret = now_token;
+    now_token = now_token->next;
+    return ret;
+}
+
 bool is_eof() {
     return (now_token->kind == TK_EOF);
 }
@@ -77,7 +86,7 @@ Token *tokenize(char *str_p) {
 
     char *permit_symbol[] = {
         "==", "!=", ">=", "<=",
-        "+", "-", "*", "/", "(", ")", "<", ">", "=", "!"
+        "+", "-", "*", "/", "(", ")", "<", ">", "=", "!", ";"
     };
 
     while (*str_p) {
@@ -87,7 +96,7 @@ Token *tokenize(char *str_p) {
         }
 
         bool check = false;
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < 15; i++) {
             int len = strlen(permit_symbol[i]);
             if (memcmp(str_p, permit_symbol[i], len) == 0) {
                 current = new_token(TK_SYMBOL, current, str_p, len);
@@ -98,6 +107,12 @@ Token *tokenize(char *str_p) {
         }
 
         if (check) {
+            continue;
+        }
+
+        if ('a' <= *str_p && *str_p <= 'z') {
+            current = new_token(TK_IDENT, current, str_p++, 1);
+            current->len = 1;
             continue;
         }
 

@@ -6,9 +6,9 @@ int main(int argc, char **argv) {
     }
 
     now_token = tokenize(argv[1]);
-    Node *now_node = expr();
+    program();
 
-    codegen(now_node);
+    codegen();
 
     return 0;
 }
