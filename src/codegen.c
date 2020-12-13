@@ -45,13 +45,20 @@ void compile_node(Node *node) {
             compile_node(node->judge_if);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lend%d\n", local_label);
+            printf("  je .Lelse%d\n", local_label);
 
             // "if" is true
             compile_node(node->exec_if);
             printf("  jmp .Lend%d\n", local_label);
 
-            // "if" is false
+            // "else" statement
+            printf(".Lelse%d:\n", local_label);
+            if (node->stmt_else) {
+                compile_node(node->stmt_else);
+                printf("  jmp .Lend%d\n", local_label);
+            }
+
+            // finally
             printf(".Lend%d:\n", local_label);
             return;
         }

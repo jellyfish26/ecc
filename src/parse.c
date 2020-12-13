@@ -56,6 +56,11 @@ Node *statement() {
         ret->judge_if = expr();
         move_expect_symbol(")");
         ret->exec_if = statement();
+        if (move_any_tokenkind(TK_ELSE)) {
+            ret->stmt_else = statement();
+        } else {
+            ret->stmt_else = NULL;
+        }
         return ret;
     }
 

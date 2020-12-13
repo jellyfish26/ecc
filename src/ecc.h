@@ -11,8 +11,9 @@ typedef enum {
     TK_SYMBOL, // Symbol
     TK_IDENT,  // Identify
     TK_INT,    // Integer value
-    TK_RETURN, // Return statement
-    TK_IF,     // If statement
+    TK_RETURN, // "return" statement
+    TK_IF,     // "if" statement
+    TK_ELSE,   // "else" statement
     TK_EOF,    // End Of File
 } TokenKind;
 
@@ -57,8 +58,9 @@ typedef enum {
     ND_LE,     // <=
     ND_ASSIGN, // =
     ND_LVAR,   // Local variable
-    ND_RETURN, // Return statement
-    ND_IF,     // If statement
+    ND_RETURN, // "return" statement
+    ND_IF,     // "if" statement
+    ND_ELSE,   // "else" statement
     ND_INT,    // Integer
 } NodeKind;
 

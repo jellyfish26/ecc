@@ -145,6 +145,13 @@ Token *tokenize(char *str_p) {
             continue;
         }
 
+        // "else" statement
+        if (strncmp(str_p, "else", 4) == 0) {
+            current = new_token(TK_ELSE, current, str_p, 4);
+            str_p += 4;
+            continue;
+        }
+
         if (is_identify_char(*str_p)) {
             char *start = str_p;
             while (is_identify_char(*str_p)) {

@@ -9,9 +9,9 @@ assert() {
   actual="$?"
 
   if [ "$actual" = "$expected" ]; then
-    echo "[ OK ] $input => $actual"
+    echo -e "\e[32m[ OK ]\e[m $input => $actual"
   else
-    echo "[ NG ] $input => $expected expected, but got $actual"
+    echo -e "\e[31m[ NG ]\e[m $input => $expected expected, but got $actual"
     exit 1
   fi
 }
@@ -27,6 +27,7 @@ assert $((-2*-3)) "return -2*-3;"
 assert $((-(3+5)+10)) "return -(3+5)+10;"
 assert $((- - 3 + 5)) "return - - 3 + 5;"
 assert $((- 3 - -5)) "return - 3 - -5;"
+
 assert $((1 == 1)) "return 1 == 1;"
 assert $((1 <= 1)) "return 1 <= 1;"
 assert $((1 >= 1)) "return 1 >= 1;"
@@ -40,15 +41,24 @@ assert $((0 >= 1)) "return 0 >= 1;"
 assert $((0 <= 1)) "return 0 <= 1;"
 assert $((0 != 1)) "return 0 != 1;"
 assert $(((0 == 0) + (0 < 1))) "return (0 == 0) + (0 < 1);"
+
 assert 1 "a = 1; return a;"
 assert 3 "a = 1; b = 2; return a + b;"
 assert 20 "a = 1 + 4; b = 4; z = a - b; return a * b / z;"
 assert 12 "foo = 3; bar = 4; return foo * bar;"
 assert 3 "hoge = 4; fuga = 3; return fuga; return hoge;"
+
 assert 5 "if (1 == 1) return 5; return 2;"
 assert 2 "if (0 == 1) return 5; return 2;"
 assert 2 "if (3 - 3) return 5; return 2;"
 assert 5 "if (3 - 2) return 5; return 2;"
 assert 4 "foo = 3; bar = 4; if (foo != bar) return bar; return 2;"
+
+assert 5 "if (1 == 1) return 5; else return 2;"
+assert 2 "if (0 == 1) return 5; else return 2;"
+assert 2 "if (3 - 3) return 5; else return 2;"
+assert 5 "if (3 - 2) return 5; else return 2;"
+assert 1 "tmp = 5; if (tmp == 5) tmp = 1; else tmp = 2; return tmp;"
+assert 2 "tmp = 4; if (tmp == 5) tmp = 1; else tmp = 2; return tmp;"
 
 echo OK
