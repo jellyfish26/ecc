@@ -10,6 +10,8 @@ void gen_lval(Node *node) {
     printf("  push rax\n");
 }
 
+int label_num = 0;
+
 void compile_node(Node *node) {
     if (node->kind == ND_INT) {
         printf("  push %d\n", node->val);
@@ -38,6 +40,21 @@ void compile_node(Node *node) {
         printf("  pop rbp\n");
         printf("  ret\n");
         return;
+    case ND_IF: {
+            int local_label = label_num++;
+            compile_node(node->judge_if);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%d\n", local_label);
+
+            // "if" is true
+            compile_node(node->exec_if);
+            printf("  jmp .Lend%d\n", local_label);
+
+            // "if" is false
+            printf(".Lend%d:\n", local_label);
+            return;
+        }
     }
 
     compile_node(node->lhs);

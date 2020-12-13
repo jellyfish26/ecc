@@ -11,7 +11,8 @@ typedef enum {
     TK_SYMBOL, // Symbol
     TK_IDENT,  // Identify
     TK_INT,    // Integer value
-    TK_RETURN, // Return Statement
+    TK_RETURN, // Return statement
+    TK_IF,     // If statement
     TK_EOF,    // End Of File
 } TokenKind;
 
@@ -55,8 +56,9 @@ typedef enum {
     ND_LT,     // <
     ND_LE,     // <=
     ND_ASSIGN, // =
-    ND_LVAR,   // Local Variable
-    ND_RETURN, // Return Statement
+    ND_LVAR,   // Local variable
+    ND_RETURN, // Return statement
+    ND_IF,     // If statement
     ND_INT,    // Integer
 } NodeKind;
 
@@ -67,6 +69,12 @@ struct Node {
     NodeKind kind; // Type of NodeKind
     Node *lhs;     // Left node
     Node *rhs;     // Right node
+
+    // "if" statement
+    Node *judge_if;
+    Node *exec_if;
+    Node *stmt_else;
+
     int val;       // Integer value if NodeKind is ND_INT
     int offset;    // Offset value if NodeKind is ND_LVAL
 };

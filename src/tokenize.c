@@ -131,9 +131,17 @@ Token *tokenize(char *str_p) {
             continue;
         }
 
+        // "return" statement
         if (strncmp(str_p, "return", 6) == 0 && !is_identify_char(str_p[6])) {
             current = new_token(TK_RETURN, current, str_p, 6);
             str_p += 6;
+            continue;
+        }
+
+        // "if" statement
+        if (strncmp(str_p, "if", 2) == 0) {
+            current = new_token(TK_IF, current, str_p, 2);
+            str_p += 2;
             continue;
         }
 

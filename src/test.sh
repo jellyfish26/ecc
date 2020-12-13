@@ -45,5 +45,10 @@ assert 3 "a = 1; b = 2; return a + b;"
 assert 20 "a = 1 + 4; b = 4; z = a - b; return a * b / z;"
 assert 12 "foo = 3; bar = 4; return foo * bar;"
 assert 3 "hoge = 4; fuga = 3; return fuga; return hoge;"
+assert 5 "if (1 == 1) return 5; return 2;"
+assert 2 "if (0 == 1) return 5; return 2;"
+assert 2 "if (3 - 3) return 5; return 2;"
+assert 5 "if (3 - 2) return 5; return 2;"
+assert 4 "foo = 3; bar = 4; if (foo != bar) return bar; return 2;"
 
 echo OK

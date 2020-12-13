@@ -50,13 +50,24 @@ void program() {
 Node *statement() {
     Node *ret;
 
-    if (move_any_tokenkind(TK_RETURN)) {
-        ret = new_node(ND_RETURN, expr(), NULL);
-    } else {
-        ret = expr();
+    if (move_any_tokenkind(TK_IF)) {
+        ret = new_node(ND_IF, NULL, NULL);
+        move_expect_symbol("(");
+        ret->judge_if = expr();
+        move_expect_symbol(")");
+        ret->exec_if = statement();
+        return ret;
     }
 
+    if (move_any_tokenkind(TK_RETURN)) {
+        ret = new_node(ND_RETURN, expr(), NULL);
+        move_expect_symbol(";");
+        return ret;
+    }
+
+    ret = expr();
     move_expect_symbol(";");
+    
     return ret;
 }
 
