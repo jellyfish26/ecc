@@ -56,8 +56,9 @@ int move_expect_number() {
     return val;
 }
 
-Token *move_ident() {
-    if (now_token->kind != TK_IDENT) {
+// Warning: This function only checks the TokenKind.
+Token *move_any_tokenkind(TokenKind  kind) {
+    if (now_token->kind != kind) {
         return NULL;
     }
     Token *ret = now_token;
@@ -127,6 +128,12 @@ Token *tokenize(char *str_p) {
             char *before = str_p;
             current->val = strtol(str_p, &str_p, 10);
             current->len = str_p - before;
+            continue;
+        }
+
+        if (strncmp(str_p, "return", 6) == 0 && !is_identify_char(str_p[6])) {
+            current = new_token(TK_RETURN, current, str_p, 6);
+            str_p += 6;
             continue;
         }
 

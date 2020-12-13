@@ -26,11 +26,17 @@ void compile_node(Node *node) {
     case ND_ASSIGN:
         gen_lval(node->lhs);
         compile_node(node->rhs);
-
         printf("  pop rdi\n");
         printf("  pop rax\n");
         printf("  mov [rax], rdi\n");
         printf("  push rdi\n");
+        return;
+    case ND_RETURN:
+        compile_node(node->lhs);
+        printf("  pop rax\n");
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
         return;
     }
 

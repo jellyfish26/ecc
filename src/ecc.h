@@ -11,6 +11,7 @@ typedef enum {
     TK_SYMBOL, // Symbol
     TK_IDENT,  // Identify
     TK_INT,    // Integer value
+    TK_RETURN, // Return Statement
     TK_EOF,    // End Of File
 } TokenKind;
 
@@ -36,7 +37,7 @@ void errorf_at(char *loc, char *format, ...);
 bool move_symbol(char *op);
 void move_expect_symbol(char *op);
 int move_expect_number();
-Token *move_ident();
+Token *move_any_tokenkind(TokenKind kind);
 
 bool is_eof();
 
@@ -55,6 +56,7 @@ typedef enum {
     ND_LE,     // <=
     ND_ASSIGN, // =
     ND_LVAR,   // Local Variable
+    ND_RETURN, // Return Statement
     ND_INT,    // Integer
 } NodeKind;
 

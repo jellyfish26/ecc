@@ -48,7 +48,14 @@ void program() {
 }
 
 Node *statement() {
-    Node *ret = expr();
+    Node *ret;
+
+    if (move_any_tokenkind(TK_RETURN)) {
+        ret = new_node(ND_RETURN, expr(), NULL);
+    } else {
+        ret = expr();
+    }
+
     move_expect_symbol(";");
     return ret;
 }
@@ -143,7 +150,7 @@ Node *primary() {
         return ret;
     }
 
-    Token *token = move_ident();
+    Token *token = move_any_tokenkind(TK_IDENT);
 
     if (token) {
         Node *ret = new_node(ND_LVAR, NULL, NULL);
