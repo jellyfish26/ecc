@@ -98,8 +98,8 @@ void compile_node(Node *node) {
     }
 
 
-    // warn: rsp times 16bytes is not implement
     if (node->kind == ND_FUNC_CALL) {
+        int local_label = label_num++;
         char *name = calloc(node->func_name_len + 1, sizeof(char));
         memcpy(name, node->func_name, node->func_name_len);
         int now_argc = 0;
@@ -111,7 +111,24 @@ void compile_node(Node *node) {
             printf("  pop %s\n", args_reg[i]);
         }
 
+        // Adjust RSP so that it is a multiple of 16bytes.
+        printf("  mov rax, rsp\n");
+        printf("  and rax, 15\n");
+        printf("  jz .Lcall_normal%d\n", local_label);
+
+        // Not multiple of 16bytes
+        printf("  sub rsp, 8\n");
+        printf("  mov rax, 0\n");
         printf("  call %s\n", name);
+        printf("  add rsp, 8\n");
+        printf("  jmp .Lcall_end%d\n", local_label);
+
+        // Normal call
+        printf(".Lcall_normal%d:\n", local_label);
+        printf("  mov rax, 0\n");
+        printf("  call %s\n", name);
+
+        printf(".Lcall_end%d:\n", local_label);
         printf("  push rax\n");
         return;
     }
