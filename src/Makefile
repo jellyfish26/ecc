@@ -12,5 +12,6 @@ test: ecc
 
 clean:
 	rm -f ecc *.o tmp*
+	rm -f ../test/*.o
 
 .PHONY: test clean

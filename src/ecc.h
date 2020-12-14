@@ -50,24 +50,24 @@ Token *tokenize(char *str_p);
 // parse.c
 
 typedef enum {
-    ND_ADD,    // +
-    ND_SUB,    // -
-    ND_MUL,    // *
-    ND_DIV,    // /
-    ND_EQ,     // ==
-    ND_NEQ,    // !=
-    ND_LT,     // <
-    ND_LE,     // <=
-    ND_ASSIGN, // =
-    ND_LVAR,   // Local variable
-    ND_BLOCK,   // any statements
-    ND_RETURN, // "return" statement
-    ND_IF,     // "if" statement
-    ND_ELSE,   // "else" statement
-    ND_FOR,    // "for" statement
-    ND_WHILE,  // "while" statement
-    ND_FUNC,   // Function
-    ND_INT,    // Integer
+    ND_ADD,       // +
+    ND_SUB,       // -
+    ND_MUL,       // *
+    ND_DIV,       // /
+    ND_EQ,        // ==
+    ND_NEQ,       // !=
+    ND_LT,        // <
+    ND_LE,        // <=
+    ND_ASSIGN,    // =
+    ND_LVAR,      // Local variable
+    ND_BLOCK,     // any statements
+    ND_RETURN,    // "return" statement
+    ND_IF,        // "if" statement
+    ND_ELSE,      // "else" statement
+    ND_FOR,       // "for" statement
+    ND_WHILE,     // "while" statement
+    ND_FUNC_CALL, // Function call
+    ND_INT,       // Integer
 } NodeKind;
 
 typedef struct Node Node;
@@ -97,6 +97,8 @@ struct Node {
 
     char *func_name;   // Function name
     int func_name_len; // Length of function name
+    int func_argc;     // Number of function argments
+    Node *func_args[6];  // Contents of function argments
 };
 
 typedef struct LVar LVar;

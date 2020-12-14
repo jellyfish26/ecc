@@ -1,9 +1,11 @@
 #include <stdio.h>
 
-void foo() {
-    printf("foo\n");
+int foo(int i, int j) {
+    printf("%d\n", i + j);
+    return i + j;
 }
 
-void bar() {
-    printf("bar\n");
+int bar(int i, int j) {
+    printf("%d\n", i - j);
+    return i - j;
 }

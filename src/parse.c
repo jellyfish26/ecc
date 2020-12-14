@@ -222,10 +222,23 @@ Node *primary() {
 
         // Function
         if (move_symbol("(")) {
-            ret = new_node(ND_FUNC, NULL, NULL);
+            ret = new_node(ND_FUNC_CALL, NULL, NULL);
             ret->func_name = token->str;
             ret->func_name_len = token->len;
-            move_expect_symbol(")");
+            
+            while (true) {
+                if (move_symbol(")")) {
+                    break;
+                }
+
+                ret->func_args[ret->func_argc] = expr();
+                ret->func_argc++;
+                if (move_symbol(")")) {
+                    break;
+                } else {
+                    move_expect_symbol(",");
+                }
+            }
             return ret;
         }
 

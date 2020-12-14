@@ -11,6 +11,7 @@ void gen_lval(Node *node) {
 }
 
 int label_num = 0;
+char *args_reg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void compile_node(Node *node) {
     if (node->kind == ND_INT) {
@@ -98,10 +99,20 @@ void compile_node(Node *node) {
 
 
     // warn: rsp times 16bytes is not implement
-    if (node->kind == ND_FUNC) {
+    if (node->kind == ND_FUNC_CALL) {
         char *name = calloc(node->func_name_len + 1, sizeof(char));
         memcpy(name, node->func_name, node->func_name_len);
+        int now_argc = 0;
+        for (now_argc = 0; now_argc < node->func_argc; now_argc++) {
+            compile_node(node->func_args[now_argc]);
+        }
+
+        for (int i = now_argc - 1; i >= 0; i--) {
+            printf("  pop %s\n", args_reg[i]);
+        }
+
         printf("  call %s\n", name);
+        printf("  push rax\n");
         return;
     }
 

@@ -1,10 +1,12 @@
 #!/bin/bash
+gcc -std=c11 -static -c -o ../test/print.o ../test/print.c
+
 assert() {
   expected="$1"
   input="$2"
 
   ./ecc "$input" > tmp.s
-  gcc -o tmp tmp.s
+  gcc -o tmp tmp.s ../test/print.o
   ./tmp
   actual="$?"
 
@@ -71,5 +73,8 @@ assert 15 "i = 0; while (i < 15) i = i + 1; return i;"
 assert 30 "i = 0; j = 0; while (i < 15) { i = i + 1; j = j + 2; } return j;"
 assert 10 "i = 0; while(i != -1) { i = i + 1; if (i == 10) return i; }"
 assert 10 "i = 0; for (;;) { i = i + 1; if (i == 10) return i; }"
+
+assert 3 "foo(2, 1);"
+assert 62 "bar(102, 40);"
 
 echo OK
