@@ -61,4 +61,9 @@ assert 5 "if (3 - 2) return 5; else return 2;"
 assert 1 "tmp = 5; if (tmp == 5) tmp = 1; else tmp = 2; return tmp;"
 assert 2 "tmp = 4; if (tmp == 5) tmp = 1; else tmp = 2; return tmp;"
 
+assert 5 "for (i = 0; i < 5; i = i + 1) tmp = 1; return i;"
+assert 10 "for (i = 0;;i = i + 1) if (i == 10) return i;"
+assert 20 "i = 1; for (;; i = i + 1) if (i == 20) return i;"
+assert 1 "i = 1; for (;;) if (i == 1) return i;"
+
 echo OK

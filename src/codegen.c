@@ -40,7 +40,8 @@ void compile_node(Node *node) {
         printf("  pop rbp\n");
         printf("  ret\n");
         return;
-    case ND_IF: {
+    case ND_IF:
+        {
             int local_label = label_num++;
             compile_node(node->judge_if);
             printf("  pop rax\n");
@@ -59,6 +60,37 @@ void compile_node(Node *node) {
             }
 
             // finally
+            printf(".Lend%d:\n", local_label);
+            return;
+        }
+    case ND_FOR:
+        {
+            int local_label = label_num++;
+            if (node->init_for) {
+                compile_node(node->init_for);
+            }
+
+            printf(".Lbegin%d:\n", local_label);
+
+            // "for" judge expr
+            if (node->judge_for) {
+                compile_node(node->judge_for);
+                printf("  pop rax\n");
+                printf("  cmp rax, 0\n");
+            }
+
+            printf("  je .Lend%d\n", local_label);
+
+            // "for" innner statement
+            compile_node(node->stmt_for);
+
+            // repeate
+            if (node->repeat_for) {
+                compile_node(node->repeat_for);
+            }
+
+            // finally
+            printf("  jmp .Lbegin%d\n", local_label);
             printf(".Lend%d:\n", local_label);
             return;
         }

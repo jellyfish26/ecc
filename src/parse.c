@@ -50,6 +50,7 @@ void program() {
 Node *statement() {
     Node *ret;
 
+    // "if" statement
     if (move_any_tokenkind(TK_IF)) {
         ret = new_node(ND_IF, NULL, NULL);
         move_expect_symbol("(");
@@ -64,6 +65,27 @@ Node *statement() {
         return ret;
     }
 
+    // "for" statement
+    if (move_any_tokenkind(TK_FOR)) {
+        ret = new_node(ND_FOR, NULL, NULL);
+        move_expect_symbol("(");
+        if (!move_symbol(";")) {
+            ret->init_for = expr();
+            move_expect_symbol(";");
+        }
+        if (!move_symbol(";")) {
+            ret->judge_for = expr();
+            move_expect_symbol(";");
+        }
+        if (!move_symbol(")")) {
+            ret->repeat_for = expr();
+            move_expect_symbol(")");
+        }
+        ret->stmt_for = statement();
+        return ret;
+    }
+
+    // "return" statement
     if (move_any_tokenkind(TK_RETURN)) {
         ret = new_node(ND_RETURN, expr(), NULL);
         move_expect_symbol(";");

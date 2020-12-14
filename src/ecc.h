@@ -14,6 +14,7 @@ typedef enum {
     TK_RETURN, // "return" statement
     TK_IF,     // "if" statement
     TK_ELSE,   // "else" statement
+    TK_FOR,    // "for" statement
     TK_EOF,    // End Of File
 } TokenKind;
 
@@ -61,6 +62,7 @@ typedef enum {
     ND_RETURN, // "return" statement
     ND_IF,     // "if" statement
     ND_ELSE,   // "else" statement
+    ND_FOR,    // "for" statement
     ND_INT,    // Integer
 } NodeKind;
 
@@ -76,6 +78,12 @@ struct Node {
     Node *judge_if;
     Node *exec_if;
     Node *stmt_else;
+
+    // "for" statement
+    Node *init_for;
+    Node *judge_for;
+    Node *repeat_for;
+    Node *stmt_for;
 
     int val;       // Integer value if NodeKind is ND_INT
     int offset;    // Offset value if NodeKind is ND_LVAL

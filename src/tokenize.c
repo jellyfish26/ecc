@@ -152,6 +152,13 @@ Token *tokenize(char *str_p) {
             continue;
         }
 
+        // "for" statement
+        if (strncmp(str_p, "for", 3) == 0) {
+            current = new_token(TK_FOR, current, str_p, 3);
+            str_p += 3;
+            continue;
+        }
+
         if (is_identify_char(*str_p)) {
             char *start = str_p;
             while (is_identify_char(*str_p)) {
