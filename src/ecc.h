@@ -15,6 +15,7 @@ typedef enum {
     TK_IF,     // "if" statement
     TK_ELSE,   // "else" statement
     TK_FOR,    // "for" statement
+    TK_WHILE,  // "while" statement
     TK_EOF,    // End Of File
 } TokenKind;
 
@@ -63,6 +64,7 @@ typedef enum {
     ND_IF,     // "if" statement
     ND_ELSE,   // "else" statement
     ND_FOR,    // "for" statement
+    ND_WHILE,  // "while" statement
     ND_INT,    // Integer
 } NodeKind;
 
@@ -79,7 +81,7 @@ struct Node {
     Node *exec_if;
     Node *stmt_else;
 
-    // "for" statement
+    // "for" or "while" statement
     Node *init_for;
     Node *judge_for;
     Node *repeat_for;

@@ -66,4 +66,6 @@ assert 10 "for (i = 0;;i = i + 1) if (i == 10) return i;"
 assert 20 "i = 1; for (;; i = i + 1) if (i == 20) return i;"
 assert 1 "i = 1; for (;;) if (i == 1) return i;"
 
+assert 15 "i = 0; while (i < 15) i = i + 1; return i;"
+
 echo OK

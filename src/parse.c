@@ -85,6 +85,16 @@ Node *statement() {
         return ret;
     }
 
+    // "while" statement
+    if (move_any_tokenkind(TK_WHILE)) {
+        ret = new_node(ND_WHILE, NULL, NULL);
+        move_expect_symbol("(");
+        ret->judge_for = expr();
+        move_expect_symbol(")");
+        ret->stmt_for = statement();
+        return ret;
+    }
+
     // "return" statement
     if (move_any_tokenkind(TK_RETURN)) {
         ret = new_node(ND_RETURN, expr(), NULL);

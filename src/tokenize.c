@@ -159,6 +159,13 @@ Token *tokenize(char *str_p) {
             continue;
         }
 
+        // "while" statement
+        if (strncmp(str_p, "while", 5) == 0) {
+            current = new_token(TK_WHILE, current, str_p, 5);
+            str_p += 5;
+            continue;
+        }
+
         if (is_identify_char(*str_p)) {
             char *start = str_p;
             while (is_identify_char(*str_p)) {

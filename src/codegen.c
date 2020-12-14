@@ -63,6 +63,7 @@ void compile_node(Node *node) {
             printf(".Lend%d:\n", local_label);
             return;
         }
+    case ND_WHILE:
     case ND_FOR:
         {
             int local_label = label_num++;
