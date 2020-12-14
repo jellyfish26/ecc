@@ -66,6 +66,7 @@ typedef enum {
     ND_ELSE,      // "else" statement
     ND_FOR,       // "for" statement
     ND_WHILE,     // "while" statement
+    ND_FUNC,      // Function definition
     ND_FUNC_CALL, // Function call
     ND_INT,       // Integer
 } NodeKind;
@@ -95,9 +96,9 @@ struct Node {
     int val;       // Integer value if NodeKind is ND_INT
     int offset;    // Offset value if NodeKind is ND_LVAL
 
-    char *func_name;   // Function name
-    int func_name_len; // Length of function name
-    int func_argc;     // Number of function argments
+    char *func_name;     // Function name
+    int func_name_len;   // Length of function name
+    int func_argc;       // Number of function argments
     Node *func_args[6];  // Contents of function argments
 };
 
@@ -110,8 +111,18 @@ struct LVar {
     int offset; // Offset from RBP (Base pointer)
 };
 
-void program();
-extern Node *code[100];
+typedef struct Function Function;
+
+struct Function {
+    Function *next;          // Next function
+    Node *node;              // Node tip
+    char *name;              // Function name
+    int name_len;            // Length of function name
+    LVar *local_variables;   // Local variables
+    int variables_num;          // Number of local variable
+};
+
+Function *program();
 
 // codegen.c
 

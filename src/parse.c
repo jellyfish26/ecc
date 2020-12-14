@@ -16,7 +16,7 @@ Node *new_node_int(int val) {
 }
 
 // Prototype
-void program();
+Function *program();
 Node *statement();
 Node *expr();
 Node *assign();
@@ -27,11 +27,10 @@ Node *mul();
 Node *unary();
 Node *primary();
 
-Node *code[100];
-LVar *local_variables;
+Function *now_function;
 
 LVar *find_lvar(Token *find) {
-    for (LVar *now_var = local_variables; now_var; now_var = now_var->next) {
+    for (LVar *now_var = now_function->local_variables; now_var; now_var = now_var->next) {
         if (now_var->len == find->len && !memcmp(find->str, now_var->name, now_var->len)) {
             return now_var;
         }
@@ -39,12 +38,32 @@ LVar *find_lvar(Token *find) {
     return NULL;
 }
 
-void program() {
+Function *program() {
     int i = 0;
+    Function *ret;
     while (!is_eof()) {
-        code[i++] = statement();
+        if (now_function) {
+            Function *next = calloc(1, sizeof(Function));
+            now_function->next = next;
+            now_function = next;
+        } else {
+            now_function = calloc(1, sizeof(Function));
+            ret = now_function;
+        }
+
+        // Function definition
+        Token *token = move_any_tokenkind(TK_IDENT);
+        if (token) {
+            now_function->name = token->str;
+            now_function->name_len = token->len;
+            move_expect_symbol("(");
+            move_expect_symbol(")");
+            now_function->node = statement();
+        } else {
+            errorf_at(token->str, "Statement must always start with a function");
+        }
     }
-    code[i] = NULL;
+    return ret;
 }
 
 Node *statement() {
@@ -220,7 +239,7 @@ Node *primary() {
     if (token) {
         Node *ret;
 
-        // Function
+        // Function call
         if (move_symbol("(")) {
             ret = new_node(ND_FUNC_CALL, NULL, NULL);
             ret->func_name = token->str;
@@ -249,16 +268,17 @@ Node *primary() {
             ret->offset = result->offset;
         } else {
             result = calloc(1, sizeof(LVar));
-            result->next = local_variables;
+            now_function->variables_num++;
+            result->next = now_function->local_variables;
             result->name = token->str;
             result->len = token->len;
-            if (!local_variables) {
+            if (!now_function->local_variables) {
                 result->offset = 8;
             } else {
-                result->offset = local_variables->offset + 8;
+                result->offset = now_function->variables_num * 8;
             }
             ret->offset = result->offset;
-            local_variables = result;
+            now_function->local_variables = result;
         }
         return ret;
     }

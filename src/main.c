@@ -6,9 +6,9 @@ int main(int argc, char **argv) {
     }
 
     now_token = tokenize(argv[1]);
-    program();
+    Function *start_fn = program();
 
-    codegen();
+    codegen(start_fn);
 
     return 0;
 }

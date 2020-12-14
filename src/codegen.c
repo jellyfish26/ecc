@@ -185,28 +185,28 @@ void compile_node(Node *node) {
     printf("  push rax\n");
 }
 
-void codegen() {
+void codegen(Function *start_fn) {
     // Print the initial part of the assembly
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
 
+    for (Function *now_fn = start_fn; now_fn; now_fn = now_fn->next) {
+        char *name = calloc(now_fn->name_len + 1, sizeof(char));
+        memcpy(name, now_fn->name, now_fn->name_len);
+        printf(".global %s\n", name);
+        printf("%s:\n", name);
 
-    // Prologue
-    // Allocate 26 variables.
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, 208\n");
+        // Prologue
+        // Allocate 26 variables.
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", now_fn->variables_num * 8);
 
-    for (int i = 0; code[i]; i++) {
-        compile_node(code[i]);
+        compile_node(now_fn->node);
 
-        // Pop result value 
-        printf("  pop rax\n");
+        // Epilogue
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret \n");
     }
-
-    // Epilogue
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret \n");
+    
 }
