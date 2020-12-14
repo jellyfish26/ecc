@@ -218,7 +218,18 @@ Node *primary() {
     Token *token = move_any_tokenkind(TK_IDENT);
 
     if (token) {
-        Node *ret = new_node(ND_LVAR, NULL, NULL);
+        Node *ret;
+
+        // Function
+        if (move_symbol("(")) {
+            ret = new_node(ND_FUNC, NULL, NULL);
+            ret->func_name = token->str;
+            ret->func_name_len = token->len;
+            move_expect_symbol(")");
+            return ret;
+        }
+
+        ret = new_node(ND_LVAR, NULL, NULL);
 
         LVar *result = find_lvar(token);
         if (result) {

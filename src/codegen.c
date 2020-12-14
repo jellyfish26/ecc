@@ -96,6 +96,15 @@ void compile_node(Node *node) {
         }
     }
 
+
+    // warn: rsp times 16bytes is not implement
+    if (node->kind == ND_FUNC) {
+        char *name = calloc(node->func_name_len + 1, sizeof(char));
+        memcpy(name, node->func_name, node->func_name_len);
+        printf("  call %s\n", name);
+        return;
+    }
+
     if (node->kind == ND_BLOCK) {
         for (Node *now_stmt = node->stmt_next; now_stmt; now_stmt = now_stmt->stmt_next) {
             compile_node(now_stmt);

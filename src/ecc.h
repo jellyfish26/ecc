@@ -66,6 +66,7 @@ typedef enum {
     ND_ELSE,   // "else" statement
     ND_FOR,    // "for" statement
     ND_WHILE,  // "while" statement
+    ND_FUNC,   // Function
     ND_INT,    // Integer
 } NodeKind;
 
@@ -93,6 +94,9 @@ struct Node {
 
     int val;       // Integer value if NodeKind is ND_INT
     int offset;    // Offset value if NodeKind is ND_LVAL
+
+    char *func_name;   // Function name
+    int func_name_len; // Length of function name
 };
 
 typedef struct LVar LVar;
