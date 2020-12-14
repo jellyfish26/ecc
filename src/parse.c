@@ -38,6 +38,27 @@ LVar *find_lvar(Token *find) {
     return NULL;
 }
 
+
+// If the lvar already exists, it returns the already existing offset
+LVar *add_lvar(Token *target) {
+    LVar *local = find_lvar(target);
+    if (local) {
+        return local;
+    }
+    now_function->variables_num++;
+    local = calloc(1, sizeof(LVar));
+    local->next = now_function->local_variables;
+    local->name = target->str;
+    local->len = target->len;
+    if (!now_function->local_variables) {
+        local->offset = 8;
+    } else {
+        local->offset = now_function->variables_num * 8;
+    }
+    now_function->local_variables = local;
+    return local;
+}
+
 Function *program() {
     int i = 0;
     Function *ret;
@@ -57,7 +78,26 @@ Function *program() {
             now_function->name = token->str;
             now_function->name_len = token->len;
             move_expect_symbol("(");
-            move_expect_symbol(")");
+
+            if (!move_symbol(")")) {
+                while (true) {
+                    Token *local = move_any_tokenkind(TK_IDENT);
+                    if (local) {
+                        LVar *tmp = add_lvar(local);
+                        now_function->func_args[now_function->func_argc] = tmp;
+                        now_function->func_argc++;
+                        if (move_symbol(",")) {
+                            continue;
+                        }
+
+                        if (move_symbol(")")) {
+                            break;
+                        }
+                    } else {
+                        errorf_at(now_token->str, "Not variable");
+                    }
+                }
+            }
             now_function->node = statement();
         } else {
             errorf_at(token->str, "Statement must always start with a function");
@@ -244,18 +284,20 @@ Node *primary() {
             ret = new_node(ND_FUNC_CALL, NULL, NULL);
             ret->func_name = token->str;
             ret->func_name_len = token->len;
+
+            if (move_symbol(")")) {
+                return ret;
+            }
             
             while (true) {
-                if (move_symbol(")")) {
-                    break;
-                }
-
                 ret->func_args[ret->func_argc] = expr();
                 ret->func_argc++;
+                if (move_symbol(",")) {
+                    continue;
+                }
+
                 if (move_symbol(")")) {
                     break;
-                } else {
-                    move_expect_symbol(",");
                 }
             }
             return ret;
@@ -264,22 +306,10 @@ Node *primary() {
         ret = new_node(ND_LVAR, NULL, NULL);
 
         LVar *result = find_lvar(token);
-        if (result) {
-            ret->offset = result->offset;
-        } else {
-            result = calloc(1, sizeof(LVar));
-            now_function->variables_num++;
-            result->next = now_function->local_variables;
-            result->name = token->str;
-            result->len = token->len;
-            if (!now_function->local_variables) {
-                result->offset = 8;
-            } else {
-                result->offset = now_function->variables_num * 8;
-            }
-            ret->offset = result->offset;
-            now_function->local_variables = result;
+        if (!result) {
+            result = add_lvar(token);
         }
+        ret->offset = result->offset;
         return ret;
     }
 

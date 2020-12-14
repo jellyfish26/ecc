@@ -96,10 +96,10 @@ struct Node {
     int val;       // Integer value if NodeKind is ND_INT
     int offset;    // Offset value if NodeKind is ND_LVAL
 
-    char *func_name;     // Function name
-    int func_name_len;   // Length of function name
-    int func_argc;       // Number of function argments
-    Node *func_args[6];  // Contents of function argments
+    char *func_name;     // Function call name
+    int func_name_len;   // Length of function call name
+    int func_argc;       // Number of function call arguments
+    Node *func_args[6];  // Contents of function call arguments
 };
 
 typedef struct LVar LVar;
@@ -114,12 +114,14 @@ struct LVar {
 typedef struct Function Function;
 
 struct Function {
-    Function *next;          // Next function
-    Node *node;              // Node tip
-    char *name;              // Function name
-    int name_len;            // Length of function name
-    LVar *local_variables;   // Local variables
-    int variables_num;          // Number of local variable
+    Function *next;        // Next function
+    Node *node;            // Node tip
+    char *name;            // Function name
+    int name_len;          // Length of function name
+    LVar *local_variables; // Local variables
+    int variables_num;     // Number of local variable
+    int func_argc;         // Number of function arguments
+    LVar *func_args[6];    // Contents of function arguments
 };
 
 Function *program();

@@ -118,14 +118,14 @@ void compile_node(Node *node) {
 
         // Not multiple of 16bytes
         printf("  sub rsp, 8\n");
-        printf("  mov rax, 0\n");
+        printf("  mov rax, %d\n", node->func_args); // Number of arguments
         printf("  call %s\n", name);
         printf("  add rsp, 8\n");
         printf("  jmp .Lcall_end%d\n", local_label);
 
         // Normal call
         printf(".Lcall_normal%d:\n", local_label);
-        printf("  mov rax, 0\n");
+        printf("  mov rax, %d\n", node->func_args); // Number of arguments
         printf("  call %s\n", name);
 
         printf(".Lcall_end%d:\n", local_label);
@@ -200,6 +200,12 @@ void codegen(Function *start_fn) {
         printf("  push rbp\n");
         printf("  mov rbp, rsp\n");
         printf("  sub rsp, %d\n", now_fn->variables_num * 8);
+
+        for (int i = 0; i < now_fn->func_argc; i++) {
+            printf("  mov rax, rbp\n");
+            printf("  sub rax, %d\n", now_fn->func_args[i]->offset);
+            printf("  mov [rax], %s\n", args_reg[i]);
+        }
 
         compile_node(now_fn->node);
 
