@@ -50,6 +50,23 @@ void program() {
 Node *statement() {
     Node *ret;
 
+    // block statement
+    if (move_symbol("{")) {
+        ret = new_node(ND_BLOCK, NULL, NULL);
+        Node *now = NULL;
+        while (!move_symbol("}")) {
+            if (now) {
+                Node *next_node = statement();
+                now->stmt_next = next_node;
+                now = next_node;
+            } else {
+                now = statement();
+                ret->stmt_next = now;
+            }
+        }
+        return ret;
+    }
+
     // "if" statement
     if (move_any_tokenkind(TK_IF)) {
         ret = new_node(ND_IF, NULL, NULL);

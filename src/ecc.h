@@ -60,6 +60,7 @@ typedef enum {
     ND_LE,     // <=
     ND_ASSIGN, // =
     ND_LVAR,   // Local variable
+    ND_BLOCK,   // any statements
     ND_RETURN, // "return" statement
     ND_IF,     // "if" statement
     ND_ELSE,   // "else" statement
@@ -86,6 +87,9 @@ struct Node {
     Node *judge_for;
     Node *repeat_for;
     Node *stmt_for;
+
+    // Block statements
+    Node *stmt_next;
 
     int val;       // Integer value if NodeKind is ND_INT
     int offset;    // Offset value if NodeKind is ND_LVAL

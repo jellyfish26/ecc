@@ -68,4 +68,8 @@ assert 1 "i = 1; for (;;) if (i == 1) return i;"
 
 assert 15 "i = 0; while (i < 15) i = i + 1; return i;"
 
+assert 30 "i = 0; j = 0; while (i < 15) { i = i + 1; j = j + 2; } return j;"
+assert 10 "i = 0; while(i != -1) { i = i + 1; if (i == 10) return i; }"
+assert 10 "i = 0; for (;;) { i = i + 1; if (i == 10) return i; }"
+
 echo OK

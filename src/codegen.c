@@ -78,9 +78,8 @@ void compile_node(Node *node) {
                 compile_node(node->judge_for);
                 printf("  pop rax\n");
                 printf("  cmp rax, 0\n");
+                printf("  je .Lend%d\n", local_label);
             }
-
-            printf("  je .Lend%d\n", local_label);
 
             // "for" innner statement
             compile_node(node->stmt_for);
@@ -95,6 +94,13 @@ void compile_node(Node *node) {
             printf(".Lend%d:\n", local_label);
             return;
         }
+    }
+
+    if (node->kind == ND_BLOCK) {
+        for (Node *now_stmt = node->stmt_next; now_stmt; now_stmt = now_stmt->stmt_next) {
+            compile_node(now_stmt);
+        }
+        return;
     }
 
     compile_node(node->lhs);
