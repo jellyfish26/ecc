@@ -95,6 +95,15 @@ void compile_node(Node *node) {
             printf(".Lend%d:\n", local_label);
             return;
         }
+    case ND_ADDR:
+        gen_lval(node->lhs);
+        return;
+    case ND_IND_REF:
+        compile_node(node->lhs);
+        printf("  pop rax\n");
+        printf("  mov rax, [rax]\n");
+        printf("  push rax\n");
+        return;
     }
 
 

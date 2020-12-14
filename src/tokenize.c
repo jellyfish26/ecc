@@ -99,7 +99,7 @@ Token *tokenize(char *str_p) {
 
     char *permit_symbol[] = {
         "==", "!=", ">=", "<=",
-        "+", "-", "*", "/", "(", ")", "<", ">", "=", "!", ";", "{", "}", ","
+        "+", "-", "*", "/", "(", ")", "<", ">", "=", "!", ";", "{", "}", ",", "&"
     };
 
     while (*str_p) {
@@ -109,7 +109,7 @@ Token *tokenize(char *str_p) {
         }
 
         bool check = false;
-        for (int i = 0; i < 18; i++) {
+        for (int i = 0; i < 19; i++) {
             int len = strlen(permit_symbol[i]);
             if (memcmp(str_p, permit_symbol[i], len) == 0) {
                 current = new_token(TK_SYMBOL, current, str_p, len);

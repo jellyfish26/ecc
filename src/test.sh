@@ -83,4 +83,12 @@ assert 8 "main() { a = 3; b = hoge(); return a + b; } hoge() { a = 5; return a; 
 
 assert 6  "main() { return hoge(2, 3); } hoge(a, b) { return a * b; }"
 assert 23 "main() { a = 3; b = 5; return a + b + hoge(a, b); } hoge(a, b) { return a * b; }"
+
+assert 3 "
+main() {
+  x = 3;
+  y = &x;
+  return *y;
+}
+"
 echo OK

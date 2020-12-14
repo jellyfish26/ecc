@@ -262,6 +262,10 @@ Node *unary() {
         return unary();
     } else if (move_symbol("-")) {
         return new_node(ND_SUB, new_node_int(0), unary());
+    } else if (move_symbol("&")) {
+        return new_node(ND_ADDR, unary(), NULL);
+    } else if (move_symbol("*")) {
+        return new_node(ND_IND_REF, unary(), NULL);
     }
 
     return primary();

@@ -59,6 +59,8 @@ typedef enum {
     ND_LT,        // <
     ND_LE,        // <=
     ND_ASSIGN,    // =
+    ND_ADDR,      // &
+    ND_IND_REF,   // *
     ND_LVAR,      // Local variable
     ND_BLOCK,     // any statements
     ND_RETURN,    // "return" statement
