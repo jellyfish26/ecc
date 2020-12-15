@@ -2,7 +2,7 @@
 
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
-        errorf("Left side value of assignment is not a variable");
+        errorf("Not variable");
     }
 
     printf("  mov rax, rbp\n");
@@ -157,10 +157,18 @@ void compile_node(Node *node) {
 
     switch (node->kind) {
     case ND_ADD:
-        printf("  add rax, rdi\n");
+        if (node->lhs->kind == ND_ADDR) {
+            printf("  sub rax, rdi\n");
+        } else {
+            printf("  add rax, rdi\n");
+        }
         break;
     case ND_SUB:
-        printf("  sub rax, rdi\n");
+        if (node->lhs->kind == ND_ADDR) {
+            printf("  add rax, rdi\n");
+        } else {
+            printf("  sub rax, rdi\n");
+        }
         break;
     case ND_MUL:
         printf("  imul rax, rdi\n");

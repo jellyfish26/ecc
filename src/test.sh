@@ -87,4 +87,7 @@ assert 23 "int main() { int a = 3; int b = 5; return a + b + hoge(a, b); } int h
 assert 3 "int main() { int x = 3; int y = &x; return *y; } "
 
 assert 55 "int main() { return fib(10); } int fib(int a) { if (a == 0) { return 0; } else if (a == 1) { return 1; } else { return fib(a - 2) + fib(a - 1); } } "
+
+assert 2 "int main() {int a = 1; int b = 2; return *(&a + 8); }"
+assert 1 "int main() {int a = 1; int b = 2; return *(&b - 8); }"
 echo All Test Passed
