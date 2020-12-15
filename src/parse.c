@@ -59,6 +59,10 @@ LVar *add_lvar(Token *target) {
     return local;
 }
 
+// program  = function*
+// function = ident "(" params? ")" statement
+// params   = param ("," param)*
+// param    = ident
 Function *program() {
     int i = 0;
     Function *ret;
@@ -106,6 +110,12 @@ Function *program() {
     return ret;
 }
 
+// statement = expr? ";"
+//           | "{" statement* "}"
+//           | "if" "(" expr ")" statement ("else" statement)?
+//           | "for" "(" expr? "," expr? "," expr? ")" statement
+//           | "while" "(" expr ")" statement
+//           | "return" expr ";"
 Node *statement() {
     Node *ret;
 
@@ -184,10 +194,13 @@ Node *statement() {
     return ret;
 }
 
+// expr = assign
 Node *expr() {
     return assign();
 }
 
+
+// assign = equality ("=" assign)?
 Node *assign() {
     Node *ret = equality();
 
@@ -197,6 +210,7 @@ Node *assign() {
     return ret;
 }
 
+// equality = relational ("==" relational | "!=" relational)?
 Node *equality() {
     Node *ret = relational();
 
@@ -211,6 +225,7 @@ Node *equality() {
     }
 }
 
+// relational = add ("<=" add | ">=" add | "<" add | ">" add)?
 Node *relational() {
     Node *ret = add();
 
@@ -229,6 +244,7 @@ Node *relational() {
     }
 }
 
+// add = mul ("+" mul | "-" mul)?
 Node *add() {
     Node *ret = mul();
 
@@ -243,6 +259,7 @@ Node *add() {
     }
 }
 
+// mul = unary ("*" unary | "/" unary)?
 Node *mul() {
     Node *ret = unary();
 
@@ -257,6 +274,8 @@ Node *mul() {
     }
 }
 
+// unary = primary
+//       | ("+" unary | "-" unary | "&" unary | "*" unary)
 Node *unary() {
     if (move_symbol("+")) {
         return unary();
@@ -271,6 +290,11 @@ Node *unary() {
     return primary();
 }
 
+// primary = "(" expr ")"
+//         | ident
+//         | ident "(" params? ")"
+// params  = param ("," param)*
+// param   = ident
 Node *primary() {
     if (move_symbol("(")) {
         Node *ret = expr();
