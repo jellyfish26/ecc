@@ -60,9 +60,9 @@ LVar *add_lvar(Token *target) {
 }
 
 // program  = function*
-// function = ident "(" params? ")" statement
+// function = type ident "(" params? ")" statement
 // params   = param ("," param)*
-// param    = ident
+// param    = type ident
 Function *program() {
     int i = 0;
     Function *ret;
@@ -77,6 +77,10 @@ Function *program() {
         }
 
         // Function definition
+        Token *var_type = move_any_tokenkind(TK_TYPE);
+        if (!var_type) {
+            errorf_at(now_token->str, "Cannot parse type");
+        }
         Token *token = move_any_tokenkind(TK_IDENT);
         if (token) {
             now_function->name = token->str;
@@ -85,6 +89,10 @@ Function *program() {
 
             if (!move_symbol(")")) {
                 while (true) {
+                    var_type = move_any_tokenkind(TK_TYPE);
+                    if (!var_type) {
+                        errorf_at(now_token->str, "Cannot parse type");
+                    }
                     Token *local = move_any_tokenkind(TK_IDENT);
                     if (local) {
                         LVar *tmp = add_lvar(local);
@@ -291,21 +299,42 @@ Node *unary() {
 }
 
 // primary = "(" expr ")"
-//         | ident
+//         | type ident -> not already
+//         | ident -> already exists
 //         | ident "(" params? ")"
 // params  = param ("," param)*
 // param   = ident
 Node *primary() {
+    Node *ret;
     if (move_symbol("(")) {
-        Node *ret = expr();
+        ret = expr();
         move_expect_symbol(")");
+        return ret;
+    }
+
+    Token *var_type = move_any_tokenkind(TK_TYPE);
+    if (var_type) {
+        Token *token = move_any_tokenkind(TK_IDENT);
+
+        if (!token) {
+            errorf_at(now_token->str, "Not identfy");
+        }
+
+        ret = new_node(ND_LVAR, NULL, NULL);
+
+        LVar *result = find_lvar(token);
+        if (!result) {
+            result = add_lvar(token);
+        } else {
+            errorf_at(token->str, "This variable already exists");
+        }
+        ret->offset = result->offset;
         return ret;
     }
 
     Token *token = move_any_tokenkind(TK_IDENT);
 
     if (token) {
-        Node *ret;
 
         // Function call
         if (move_symbol("(")) {
@@ -335,11 +364,10 @@ Node *primary() {
 
         LVar *result = find_lvar(token);
         if (!result) {
-            result = add_lvar(token);
+             errorf_at(token->str, "This variable is not defined");
         }
         ret->offset = result->offset;
         return ret;
     }
-
     return new_node_int(move_expect_number());
 }
