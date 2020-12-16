@@ -2,7 +2,6 @@
 
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
-        printf("%d\n", node->kind);
         errorf("Not variable");
     }
 
@@ -134,14 +133,14 @@ void compile_node(Node *node) {
 
         // Not multiple of 16bytes
         printf("  sub rsp, 8\n");
-        printf("  mov rax, %d\n", node->func_args); // Number of arguments
+        printf("  mov rax, %d\n", node->func_argc); // Number of arguments
         printf("  call %s\n", name);
         printf("  add rsp, 8\n");
         printf("  jmp .Lcall_end%d\n", local_label);
 
         // Normal call
         printf(".Lcall_normal%d:\n", local_label);
-        printf("  mov rax, %d\n", node->func_args); // Number of arguments
+        printf("  mov rax, %d\n", node->func_argc); // Number of arguments
         printf("  call %s\n", name);
 
         printf(".Lcall_end%d:\n", local_label);

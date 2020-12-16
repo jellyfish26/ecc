@@ -95,4 +95,8 @@ assert 3 "int main() { int x; int *y; y = &x; *y = 3; return *y; }"
 
 assert 5 "int main() { int x; int *y; int **z; y = &x; z = &y; **z = 5; return x; } "
 assert 3 "int main() { int x = 5; hoge(&x); return x; } int hoge(int *x) { *x = 3; } "
+assert 8 'int main() { int x = 8; int *y = &x; int **z=&y; return **z; }'
+assert 6 'int main() { int x = 2; int y = 6; return *(&x + 1); }'
+assert 6 'int main() { int x = 2; int y = 6; return *(1 + &x); }'
+assert 7 'int main() { int x = 5; int y = 2; return hoge(&x, y); } int hoge(int *x, int y) { return *x + y; }'
 echo All Test Passed
