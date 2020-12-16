@@ -40,7 +40,7 @@ LVar *find_lvar(Token *find) {
 
 
 // If the lvar already exists, it returns the already existing offset
-LVar *add_lvar(Token *target) {
+LVar *add_lvar(Token *target, Type *type) {
     LVar *local = find_lvar(target);
     if (local) {
         return local;
@@ -48,21 +48,31 @@ LVar *add_lvar(Token *target) {
     now_function->variables_num++;
     local = calloc(1, sizeof(LVar));
     local->next = now_function->local_variables;
+    local->type = type;
     local->name = target->str;
     local->len = target->len;
-    if (!now_function->local_variables) {
-        local->offset = 8;
-    } else {
-        local->offset = now_function->variables_num * 8;
-    }
     now_function->local_variables = local;
     return local;
 }
 
+
+// basetype = "int" "*"*
+Type *basetype() {
+    Token *tmp = move_any_tokenkind(TK_TYPE);
+    if (!tmp) {
+        return NULL;
+    }
+    Type *ret = int_type();
+    while (move_symbol("*")) {
+        ret = pointer_type(ret);
+    }
+    return ret;
+}
+
 // program  = function*
-// function = type ident "(" params? ")" statement
+// function = basetype ident "(" params? ")" statement
 // params   = param ("," param)*
-// param    = type ident
+// param    = basetype ident
 Function *program() {
     int i = 0;
     Function *ret;
@@ -77,9 +87,9 @@ Function *program() {
         }
 
         // Function definition
-        Token *var_type = move_any_tokenkind(TK_TYPE);
-        if (!var_type) {
-            errorf_at(now_token->str, "Cannot parse type");
+        Type *func_type = basetype();
+        if (!func_type) {
+            errorf_at(now_token->str, "Invalid type");
         }
         Token *token = move_any_tokenkind(TK_IDENT);
         if (token) {
@@ -89,13 +99,13 @@ Function *program() {
 
             if (!move_symbol(")")) {
                 while (true) {
-                    var_type = move_any_tokenkind(TK_TYPE);
+                    Type *var_type = basetype();
                     if (!var_type) {
-                        errorf_at(now_token->str, "Cannot parse type");
+                        errorf_at(now_token->str, "Invalid type");
                     }
                     Token *local = move_any_tokenkind(TK_IDENT);
                     if (local) {
-                        LVar *tmp = add_lvar(local);
+                        LVar *tmp = add_lvar(local, var_type);
                         now_function->func_args[now_function->func_argc] = tmp;
                         now_function->func_argc++;
                         if (move_symbol(",")) {
@@ -111,6 +121,13 @@ Function *program() {
                 }
             }
             now_function->node = statement();
+
+            // setting offset
+            int cnt = 1;
+            for (LVar *now_var = now_function->local_variables; now_var; now_var = now_var->next) {
+                now_var->offset = cnt * 8;
+                cnt++;
+            }
         } else {
             errorf_at(token->str, "Statement must always start with a function");
         }
@@ -299,7 +316,7 @@ Node *unary() {
 }
 
 // primary = "(" expr ")"
-//         | type ident -> not already
+//         | basetype ident -> not already
 //         | ident -> already exists
 //         | ident "(" params? ")"
 // params  = param ("," param)*
@@ -312,7 +329,7 @@ Node *primary() {
         return ret;
     }
 
-    Token *var_type = move_any_tokenkind(TK_TYPE);
+    Type *var_type = basetype();
     if (var_type) {
         Token *token = move_any_tokenkind(TK_IDENT);
 
@@ -324,11 +341,11 @@ Node *primary() {
 
         LVar *result = find_lvar(token);
         if (!result) {
-            result = add_lvar(token);
+            result = add_lvar(token, var_type);
         } else {
             errorf_at(token->str, "This variable already exists");
         }
-        ret->offset = result->offset;
+        ret->local_variable = result;
         return ret;
     }
 
@@ -366,7 +383,7 @@ Node *primary() {
         if (!result) {
              errorf_at(token->str, "This variable is not defined");
         }
-        ret->offset = result->offset;
+        ret->local_variable = result;
         return ret;
     }
     return new_node_int(move_expect_number());

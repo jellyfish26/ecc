@@ -48,6 +48,27 @@ bool is_eof();
 
 Token *tokenize(char *str_p);
 
+typedef struct Type Type;
+typedef struct Node Node;
+typedef struct LVar LVar;
+typedef struct Function Function;
+
+// type.c
+
+typedef enum {
+    TY_INT,  // Integer
+    TY_PTR,  // Pointer
+} TypeKind;
+
+struct Type {
+    TypeKind kind;
+    Type *ptr_to;
+};
+
+Type *int_type();
+Type *pointer_type(Type *target);
+void init_type_function(Function *target);
+
 // parse.c
 
 typedef enum {
@@ -74,7 +95,7 @@ typedef enum {
     ND_INT,       // Integer
 } NodeKind;
 
-typedef struct Node Node;
+
 
 // Type Node
 struct Node {
@@ -96,8 +117,9 @@ struct Node {
     // Block statements
     Node *stmt_next;
 
-    int val;       // Integer value if NodeKind is ND_INT
-    int offset;    // Offset value if NodeKind is ND_LVAL
+    Type *type;            // Type (ex int, pointer)
+    LVar *local_variable;  // Contents of variable
+    int val;               // Integer value if NodeKind is ND_INT
 
     char *func_name;     // Function call name
     int func_name_len;   // Length of function call name
@@ -105,16 +127,13 @@ struct Node {
     Node *func_args[6];  // Contents of function call arguments
 };
 
-typedef struct LVar LVar;
-
 struct LVar {
     LVar *next; // Next variable (NULL if no variable)
+    Type *type; // Variable type
     char *name; // Variable name
     int len;    // Length of name
     int offset; // Offset from RBP (Base pointer)
 };
-
-typedef struct Function Function;
 
 struct Function {
     Function *next;        // Next function

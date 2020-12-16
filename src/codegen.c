@@ -2,11 +2,12 @@
 
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
+        printf("%d\n", node->kind);
         errorf("Not variable");
     }
 
     printf("  mov rax, rbp\n");
-    printf("  sub rax, %d\n", node->offset);
+    printf("  sub rax, %d\n", node->local_variable->offset);
     printf("  push rax\n");
 }
 
@@ -27,7 +28,13 @@ void compile_node(Node *node) {
         printf("  push rax\n");
         return;
     case ND_ASSIGN:
-        gen_lval(node->lhs);
+        if (node->lhs->kind == ND_LVAR) {
+            gen_lval(node->lhs);
+        } else if (node->lhs->kind == ND_IND_REF) {
+            compile_node(node->lhs->lhs);
+        } else {
+            errorf("Assign Error");
+        }
         compile_node(node->rhs);
         printf("  pop rdi\n");
         printf("  pop rax\n");
@@ -157,18 +164,16 @@ void compile_node(Node *node) {
 
     switch (node->kind) {
     case ND_ADD:
-        if (node->lhs->kind == ND_ADDR) {
-            printf("  sub rax, rdi\n");
-        } else {
-            printf("  add rax, rdi\n");
+        if (node->type->kind == TY_PTR) {
+            printf("  imul rdi, 8\n");
         }
+        printf("  add rax, rdi\n");
         break;
     case ND_SUB:
-        if (node->lhs->kind == ND_ADDR) {
-            printf("  add rax, rdi\n");
-        } else {
-            printf("  sub rax, rdi\n");
+        if (node->type->kind == TY_PTR) {
+            printf("  imul rdi, 8\n");
         }
+        printf("  sub rax, rdi\n");
         break;
     case ND_MUL:
         printf("  imul rax, rdi\n");
