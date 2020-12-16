@@ -300,6 +300,7 @@ Node *mul() {
 }
 
 // unary = primary
+//       | "sizeof" unary
 //       | ("+" unary | "-" unary | "&" unary | "*" unary)
 Node *unary() {
     if (move_symbol("+")) {
@@ -310,6 +311,13 @@ Node *unary() {
         return new_node(ND_ADDR, unary(), NULL);
     } else if (move_symbol("*")) {
         return new_node(ND_IND_REF, unary(), NULL);
+    }
+
+    Token *token = move_any_tokenkind(TK_SIZEOF);
+    if (token) {
+        if (memcmp(token->str, "sizeof", 6) == 0) {
+            return new_node(ND_SIZEOF, unary(), NULL);
+        }
     }
 
     return primary();

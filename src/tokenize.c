@@ -173,6 +173,13 @@ Token *tokenize(char *str_p) {
             continue;
         }
 
+        // "sizeof" unary
+        if (strncmp(str_p, "sizeof", 6) == 0) {
+            current = new_token(TK_SIZEOF, current, str_p, 6);
+            str_p += 6;
+            continue;
+        }
+
         if (is_identify_char(*str_p)) {
             char *start = str_p;
             while (is_identify_char(*str_p)) {

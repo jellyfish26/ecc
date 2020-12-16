@@ -17,6 +17,7 @@ typedef enum {
     TK_FOR,    // "for" statement
     TK_WHILE,  // "while" statement
     TK_TYPE,   // Variable types
+    TK_SIZEOF, // "sizeof" unary
     TK_EOF,    // End Of File
 } TokenKind;
 
@@ -93,6 +94,7 @@ typedef enum {
     ND_FUNC,      // Function definition
     ND_FUNC_CALL, // Function call
     ND_INT,       // Integer
+    ND_SIZEOF,    // "sizeof" unary
 } NodeKind;
 
 

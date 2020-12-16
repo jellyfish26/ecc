@@ -64,6 +64,15 @@ void init_type(Node *node) {
     case ND_LVAR:
         node->type = node->local_variable->type;
         return;
+    case ND_SIZEOF:
+        if (node->lhs->type->kind == TY_INT) {
+            node->val = 8; // ecc allocates 8 bytes for int.
+        } else if (node->lhs->type->kind == TY_PTR) {
+            node->val = 8;
+        }
+        node->type = int_type();
+        node->kind = ND_INT;
+        return;
     default:
         node->type = int_type();
         return;
