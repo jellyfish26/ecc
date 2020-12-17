@@ -324,9 +324,9 @@ Node *unary() {
 }
 
 // primary = "(" expr ")"
-//         | basetype ident ("[" num "]")* -> not already
-//         | ident -> already exists
-//         | ident "(" params? ")"
+//         | basetype ident ("[" num "]")*
+//         | ident ("(" params? ")")
+//         | ident ("[" expr "]")*
 //         | num
 // params  = param ("," param)*
 // param   = ident
@@ -385,7 +385,6 @@ Node *primary() {
     }
 
     Token *token = move_any_tokenkind(TK_IDENT);
-
     if (token) {
 
         // Function call
@@ -412,13 +411,22 @@ Node *primary() {
             return ret;
         }
 
-        ret = new_node(ND_LVAR, NULL, NULL);
-
         LVar *result = find_lvar(token);
+        
         if (!result) {
              errorf_at(token->str, "This variable is not defined");
         }
+        ret = new_node(ND_LVAR, NULL, NULL);
         ret->local_variable = result;
+
+        // Reference array
+        while (move_symbol("[")) {
+            Node *addition = expr();
+            move_expect_symbol("]");
+            Node *innner = new_node(ND_ADD, ret, addition);
+            ret = new_node(ND_IND_REF, innner, NULL);
+        }
+
         return ret;
     }
     return new_node_int(move_expect_number());
