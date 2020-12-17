@@ -105,4 +105,29 @@ assert 8 "int main() { int *x; return sizeof(x); }"
 assert 8 "int main() { int *x; return sizeof x; }"
 assert 9 "int main() { int *x; return sizeof(x) + 1; }"
 assert 8 "int main() { int **x; return sizeof(x); }"
+
+assert 32 "int main() { int x[4]; return sizeof(x); }"
+assert 96 "int main() { int x[4][3]; return sizeof(x); }"
+assert 24 "int main() { int x[4][3]; return sizeof(*x); }"
+assert 8 "int main() { int x[4][3]; return sizeof(**x); }"
+
+assert 2 "int main() { int x[4]; *x = 2; return *x; } "
+assert 4 "int main() { int x[4]; *(x + 1) = 4; return *(x + 1); }"
+assert 99 "int main() { int x[100]; int i = 99; *(x + i) = i; return *(x + 99); }"
+assert 99 "int main() { int x[100]; for (int i = 0; i < 100; i = i + 1) { *(x + i) = i; } return *(x + 99); }"
+
+assert 0 "int main() { int x[4]; for (int i = 0; i < 4; i = i + 1) { *(x + i) = i; } return *x; }"
+assert 1 "int main() { int x[4]; for (int i = 0; i < 4; i = i + 1) { *(x + i) = i; } return *(x + 1); }"
+assert 2 "int main() { int x[4]; for (int i = 0; i < 4; i = i + 1) { *(x + i) = i; } return *(x + 2); }"
+assert 3 "int main() { int x[4]; for (int i = 0; i < 4; i = i + 1) { *(x + i) = i; } return *(x + 3); }"
+
+assert 0 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { *(y + i) = i; } return **x; }"
+assert 1 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { *(y + i) = i; } return *(*x + 1); }"
+assert 2 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { *(y + i) = i; } return *(*x + 2); }"
+assert 3 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { *(y + i) = i; } return **(x + 1); }"
+assert 4 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { *(y + i) = i; } return *(*x + 4); }"
+assert 5 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { *(y + i) = i; } return *(*(x + 1) + 2); }"
+assert 6 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { *(y + i) = i; } return **(x + 2); }"
+assert 5 "int main() { int x[3][3][3][3][3]; *(*(*(*(*(x + 3) + 2) + 2) + 1) + 2) = 5; return *(*(*(*(*(x + 3) + 2) + 2) + 1) + 2); }"
+
 echo All Test Passed

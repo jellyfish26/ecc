@@ -57,17 +57,21 @@ typedef struct Function Function;
 // type.c
 
 typedef enum {
-    TY_INT,  // Integer
-    TY_PTR,  // Pointer
+    TY_INT,   // Integer
+    TY_PTR,   // Pointer
+    TY_ARRAY, // Array
 } TypeKind;
 
 struct Type {
     TypeKind kind;
     Type *ptr_to;
+    size_t type_size;
+    size_t move_size;
 };
 
 Type *int_type();
 Type *pointer_type(Type *target);
+Type *array_type(Type *target, size_t array_size);
 void init_type_function(Function *target);
 
 // parse.c
@@ -143,7 +147,7 @@ struct Function {
     char *name;            // Function name
     int name_len;          // Length of function name
     LVar *local_variables; // Local variables
-    int variables_num;     // Number of local variable
+    int variables_size;    // Size of local variables
     int func_argc;         // Number of function arguments
     LVar *func_args[6];    // Contents of function arguments
 };

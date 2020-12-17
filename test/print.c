@@ -12,7 +12,7 @@ int bar(int i, int j) {
 }
 
 void output(long a) {
-    printf("%d\n", a);
+    printf("%ld\n", a);
 }
 
 void alloc4(long **x, long a, long b, long c, long d) {

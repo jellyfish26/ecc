@@ -45,7 +45,7 @@ LVar *add_lvar(Token *target, Type *type) {
     if (local) {
         return local;
     }
-    now_function->variables_num++;
+    now_function->variables_size += type->type_size;
     local = calloc(1, sizeof(LVar));
     local->next = now_function->local_variables;
     local->type = type;
@@ -123,10 +123,10 @@ Function *program() {
             now_function->node = statement();
 
             // setting offset
-            int cnt = 1;
+            int now_offset = 0;
             for (LVar *now_var = now_function->local_variables; now_var; now_var = now_var->next) {
-                now_var->offset = cnt * 8;
-                cnt++;
+                now_offset += now_var->type->type_size;
+                now_var->offset = now_offset;
             }
         } else {
             errorf_at(token->str, "Statement must always start with a function");
@@ -324,9 +324,10 @@ Node *unary() {
 }
 
 // primary = "(" expr ")"
-//         | basetype ident -> not already
+//         | basetype ident ("[" num "]")* -> not already
 //         | ident -> already exists
 //         | ident "(" params? ")"
+//         | num
 // params  = param ("," param)*
 // param   = ident
 Node *primary() {
@@ -346,6 +347,32 @@ Node *primary() {
         }
 
         ret = new_node(ND_LVAR, NULL, NULL);
+
+        // About Array
+        typedef struct ArraySize ArraySize;
+
+        struct ArraySize {
+            int array_size;
+            ArraySize *next;
+        };
+        ArraySize *tmp = NULL;
+        while (move_symbol("[")) {
+            ArraySize *now = calloc(1, sizeof(ArraySize));
+            now->array_size = move_expect_number();
+            if (now->array_size <= 0) {
+                errorf_at(now_token->str, "Invalid array size");
+            }
+
+            if (tmp) {
+                now->next = tmp;
+            }
+            tmp = now;
+            move_expect_symbol("]");
+        }
+
+        for (; tmp; tmp = tmp->next) {
+            var_type = array_type(var_type, tmp->array_size);
+        }
 
         LVar *result = find_lvar(token);
         if (!result) {

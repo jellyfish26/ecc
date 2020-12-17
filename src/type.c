@@ -3,6 +3,7 @@
 Type *int_type() {
     Type *ret = calloc(1, sizeof(Type));
     ret->kind = TY_INT;
+    ret->type_size = 8;
     return ret;
 }
 
@@ -10,6 +11,17 @@ Type *pointer_type(Type *target) {
     Type *ret = calloc(1, sizeof(Type));
     ret->kind = TY_PTR;
     ret->ptr_to = target;
+    ret->type_size = 8;
+    ret->move_size = 8;
+    return ret;
+}
+
+Type *array_type(Type *target, size_t array_size) {
+    Type *ret = calloc(1, sizeof(Type));
+    ret->kind = TY_ARRAY;
+    ret->ptr_to = target;
+    ret->type_size = target->type_size * array_size;
+    ret->move_size = target->type_size;
     return ret;
 }
 
@@ -37,12 +49,12 @@ void init_type(Node *node) {
     case ND_ADD:
     case ND_SUB:
     {
-        if (node->rhs->type->kind == TY_PTR) {
+        if (node->rhs->type->kind != TY_INT) {
             Node *tmp = node->rhs;
             node->rhs = node->lhs;
             node->lhs = tmp;
         }
-        if (node->rhs->type->kind == TY_PTR) {
+        if (node->rhs->type->kind != TY_INT) {
             errorf("Invalid operands.");
         }
         node->type = node->lhs->type;
@@ -55,7 +67,7 @@ void init_type(Node *node) {
         node->type = pointer_type(node->lhs->type);
         return;
     case ND_IND_REF:
-        if (node->lhs->type->kind == TY_PTR) {
+        if (node->lhs->type->kind != TY_INT) {
             node->type = node->lhs->type->ptr_to;
         } else {
             node->type = int_type();
@@ -65,12 +77,8 @@ void init_type(Node *node) {
         node->type = node->local_variable->type;
         return;
     case ND_SIZEOF:
-        if (node->lhs->type->kind == TY_INT) {
-            node->val = 8; // ecc allocates 8 bytes for int.
-        } else if (node->lhs->type->kind == TY_PTR) {
-            node->val = 8;
-        }
         node->type = int_type();
+        node->val = node->lhs->type->type_size;
         node->kind = ND_INT;
         return;
     default:

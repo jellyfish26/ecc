@@ -22,9 +22,11 @@ void compile_node(Node *node) {
     switch(node->kind) {
     case ND_LVAR:
         gen_lval(node);
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
-        printf("  push rax\n");
+        if (node->type->kind != TY_ARRAY) {
+            printf("  pop rax\n");
+            printf("  mov rax, [rax]\n");
+            printf("  push rax\n");
+        }
         return;
     case ND_ASSIGN:
         if (node->lhs->kind == ND_LVAR) {
@@ -106,6 +108,11 @@ void compile_node(Node *node) {
         return;
     case ND_IND_REF:
         compile_node(node->lhs);
+
+        if (node->type->kind == TY_ARRAY) {
+            return;
+        }
+
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
         printf("  push rax\n");
@@ -163,14 +170,14 @@ void compile_node(Node *node) {
 
     switch (node->kind) {
     case ND_ADD:
-        if (node->type->kind == TY_PTR) {
-            printf("  imul rdi, 8\n");
+        if (node->type->kind != TY_INT) {
+            printf("  imul rdi, %d\n", node->type->move_size);
         }
         printf("  add rax, rdi\n");
         break;
     case ND_SUB:
-        if (node->type->kind == TY_PTR) {
-            printf("  imul rdi, 8\n");
+        if (node->type->kind != TY_INT) {
+            printf("  imul rdi, %d\n", node->type->move_size);
         }
         printf("  sub rax, rdi\n");
         break;
@@ -220,7 +227,7 @@ void codegen(Function *start_fn) {
         // Allocate 26 variables.
         printf("  push rbp\n");
         printf("  mov rbp, rsp\n");
-        printf("  sub rsp, %d\n", now_fn->variables_num * 8);
+        printf("  sub rsp, %d\n", now_fn->variables_size);
 
         for (int i = 0; i < now_fn->func_argc; i++) {
             printf("  mov rax, rbp\n");
