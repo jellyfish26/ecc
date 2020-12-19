@@ -1,0 +1,4 @@
+/src/ecc
+/src/*.o
+/src/tmp*
+/test/*.o
