@@ -2,12 +2,22 @@
 
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
-        errorf("Not variable");
+        errorf("Not local variable");
     }
 
     printf("  mov rax, rbp\n");
     printf("  sub rax, %d\n", node->local_variable->offset);
     printf("  push rax\n");
+}
+
+void gen_gval(Node *node) {
+    if (node->kind != ND_GVAR) {
+        errorf("Not global variable");
+    }
+
+    char *name = calloc(node->local_variable->len + 1, sizeof(char));
+    memcpy(name, node->local_variable->name, node->local_variable->len);
+    printf("  push offset %s\n", name);
 }
 
 int label_num = 0;
@@ -28,9 +38,19 @@ void compile_node(Node *node) {
             printf("  push rax\n");
         }
         return;
+    case ND_GVAR:
+        gen_gval(node);
+        if (node->type->kind != TY_ARRAY) {
+            printf("  pop rax\n");
+            printf("  mov rax, [rax]\n");
+            printf("  push rax\n");
+        }
+        return;
     case ND_ASSIGN:
         if (node->lhs->kind == ND_LVAR) {
             gen_lval(node->lhs);
+        } else if (node->lhs->kind == ND_GVAR) {
+            gen_gval(node->lhs);
         } else if (node->lhs->kind == ND_IND_REF) {
             compile_node(node->lhs->lhs);
         } else {
@@ -218,8 +238,20 @@ void codegen(Function *start_fn) {
     printf(".intel_syntax noprefix\n");
 
     for (Function *now_fn = start_fn; now_fn; now_fn = now_fn->next) {
+        // Initial global var if type is ND_GVAR
+        if (now_fn->node->kind == ND_GVAR) {
+            LVar *var = now_fn->node->local_variable;
+            char *name = calloc(var->len + 1, sizeof(char));
+            memcpy(name, var->name, var->len);
+            printf(".data\n");
+            printf("%s:\n", name);
+            printf("  .zero %d\n", var->type->type_size);
+            continue;
+        }
+
         char *name = calloc(now_fn->name_len + 1, sizeof(char));
         memcpy(name, now_fn->name, now_fn->name_len);
+        printf(".text\n");
         printf(".global %s\n", name);
         printf("%s:\n", name);
 

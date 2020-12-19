@@ -89,6 +89,7 @@ typedef enum {
     ND_ADDR,      // &
     ND_IND_REF,   // *
     ND_LVAR,      // Local variable
+    ND_GVAR,      // Global variable
     ND_BLOCK,     // any statements
     ND_RETURN,    // "return" statement
     ND_IF,        // "if" statement

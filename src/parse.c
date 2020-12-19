@@ -28,6 +28,7 @@ Node *unary();
 Node *primary();
 
 Function *now_function;
+LVar *global_variables;
 
 LVar *find_lvar(Token *find) {
     for (LVar *now_var = now_function->local_variables; now_var; now_var = now_var->next) {
@@ -38,6 +39,14 @@ LVar *find_lvar(Token *find) {
     return NULL;
 }
 
+LVar *find_gvar(Token *find) {
+    for (LVar *now_var = global_variables; now_var; now_var = now_var->next) {
+        if (now_var->len == find->len && !memcmp(find->str, now_var->name, now_var->len)) {
+            return now_var;
+        }
+    }
+    return NULL;
+}
 
 // If the lvar already exists, it returns the already existing offset
 LVar *add_lvar(Token *target, Type *type) {
@@ -55,6 +64,20 @@ LVar *add_lvar(Token *target, Type *type) {
     return local;
 }
 
+LVar *add_gvar(Token *target, Type *type) {
+    LVar *gvar = find_gvar(target);
+    if (gvar) {
+        return gvar;
+    }
+    gvar = calloc(1, sizeof(LVar));
+    gvar->next = global_variables;
+    gvar->type = type;
+    gvar->name = target->str;
+    gvar->len = target->len;
+    global_variables = gvar;
+    return gvar;
+}
+
 
 // basetype = "int" "*"*
 Type *basetype() {
@@ -69,10 +92,42 @@ Type *basetype() {
     return ret;
 }
 
-// program  = function*
-// function = basetype ident "(" params? ")" statement
-// params   = param ("," param)*
-// param    = basetype ident
+Type *array_var(Type *target) {
+    // About Array
+    typedef struct ArraySize ArraySize;
+
+    struct ArraySize {
+        int array_size;
+        ArraySize *next;
+    };
+
+    ArraySize *tmp = NULL;
+    while (move_symbol("[")) {
+        ArraySize *now = calloc(1, sizeof(ArraySize));
+        now->array_size = move_expect_number();
+        if (now->array_size <= 0) {
+            errorf_at(now_token->str, "Invalid array size");
+        }
+
+        if (tmp) {
+            now->next = tmp;
+        }
+        tmp = now;
+        move_expect_symbol("]");
+    }
+
+    for (; tmp; tmp = tmp->next) {
+        target = array_type(target, tmp->array_size);
+    }
+
+    return target;
+}
+
+// program    = function*
+// function   = basetype ident "(" params? ")" statement
+// global_var = basetype ident ("[" num "]")* ";"
+// params     = param ("," param)*
+// param      = basetype ident
 Function *program() {
     int i = 0;
     Function *ret;
@@ -93,9 +148,15 @@ Function *program() {
         }
         Token *token = move_any_tokenkind(TK_IDENT);
         if (token) {
-            now_function->name = token->str;
-            now_function->name_len = token->len;
-            move_expect_symbol("(");
+            if (!move_symbol("(")) {
+                Type *var_type = func_type;
+                var_type = array_var(var_type);
+                move_expect_symbol(";");
+                now_function->node = new_node(ND_GVAR, NULL, NULL);
+                now_function->node->type = var_type;
+                now_function->node->local_variable = add_gvar(token, var_type);
+                continue;
+            }
 
             if (!move_symbol(")")) {
                 while (true) {
@@ -120,6 +181,8 @@ Function *program() {
                     }
                 }
             }
+            now_function->name = token->str;
+            now_function->name_len = token->len;
             now_function->node = statement();
 
             // setting offset
@@ -347,32 +410,7 @@ Node *primary() {
         }
 
         ret = new_node(ND_LVAR, NULL, NULL);
-
-        // About Array
-        typedef struct ArraySize ArraySize;
-
-        struct ArraySize {
-            int array_size;
-            ArraySize *next;
-        };
-        ArraySize *tmp = NULL;
-        while (move_symbol("[")) {
-            ArraySize *now = calloc(1, sizeof(ArraySize));
-            now->array_size = move_expect_number();
-            if (now->array_size <= 0) {
-                errorf_at(now_token->str, "Invalid array size");
-            }
-
-            if (tmp) {
-                now->next = tmp;
-            }
-            tmp = now;
-            move_expect_symbol("]");
-        }
-
-        for (; tmp; tmp = tmp->next) {
-            var_type = array_type(var_type, tmp->array_size);
-        }
+        var_type = array_var(var_type);
 
         LVar *result = find_lvar(token);
         if (!result) {
@@ -412,11 +450,17 @@ Node *primary() {
         }
 
         LVar *result = find_lvar(token);
+        ret = new_node(ND_LVAR, NULL, NULL);
+
+        if (!result) {
+            result = find_gvar(token);
+            ret = new_node(ND_GVAR, NULL, NULL);
+        }
         
         if (!result) {
              errorf_at(token->str, "This variable is not defined");
         }
-        ret = new_node(ND_LVAR, NULL, NULL);
+        
         ret->local_variable = result;
 
         // Reference array

@@ -73,6 +73,7 @@ void init_type(Node *node) {
             node->type = int_type();
         }
         return;
+    case ND_GVAR:
     case ND_LVAR:
         node->type = node->local_variable->type;
         return;

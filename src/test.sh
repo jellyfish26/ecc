@@ -6,7 +6,7 @@ assert() {
   input="$2"
 
   ./ecc "$input" > tmp.s
-  gcc -o tmp tmp.s ../test/print.o
+  gcc -static -o tmp tmp.s ../test/print.o
   ./tmp
   actual="$?"
 
@@ -148,5 +148,15 @@ assert 4 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 
 assert 5 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { y[i] = i; } return x[1][2]; }"
 assert 6 "int main() { int x[4][3]; int *y = x; for (int i = 0; i <= 6; i = i + 1) { y[i] = i; } return x[2][0]; }"
 assert 5 "int main() { int x[3][3][3][3][3]; x[1 + 2][2][2][1][2] = 5; return x[x[3][2][2][1][2] - 2][2][2][1][2]; }"
+
+assert 3 "int x; int main() {x = 3; return x; }"
+assert 4 "int x; int main() {x = 2; int x = 4; return x; }"
+assert 2 "int x[4]; int main() { x[1] = 2; return x[1]; }" 
+
+assert 1 "int x[4]; int main() { for (int i = 0; i < 4; i = i + 1) { x[i] = i + 1; } return x[0]; }"
+assert 2 "int x[4]; int main() { for (int i = 0; i < 4; i = i + 1) { x[i] = i + 1; } return x[1]; }"
+assert 3 "int x[4]; int main() { for (int i = 0; i < 4; i = i + 1) { x[i] = i + 1; } return x[2]; }"
+assert 4 "int x[4]; int main() { for (int i = 0; i < 4; i = i + 1) { x[i] = i + 1; } return x[3]; }"
+assert 5 "int x[3][3][3][3][3]; int main() { x[1 + 2][2][2][1][2] = 5; return x[x[3][2][2][1][2] - 2][2][2][1][2]; }"
 
 echo All Test Passed
